@@ -69,9 +69,9 @@ wd$funcs <- paste0(wd$dir,"functions/")
 
 ```{r, label='Load Libraries', message=FALSE,warning=FALSE}
 # Package names
-packages <- c("rgdal", "rgeos", "sp", "sf", "GISTools", "raster", "Matrix", 
-              "gdistance", "lwgeom", "data.table", "tidyverse", "tidyr", "stars",
-              "ggnewscale", "cowplot")# "spatialEco","purrr",
+packages <- c("rgdal", "rgeos", "sp", "sf", "GISTools", "raster", 
+              "tidyverse", "tidyr", "ggnewscale", "cowplot")
+              # "spatialEco","purrr","stars","data.table", "Matrix", "gdistance", "lwgeom", 
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -122,7 +122,7 @@ We will be working in the coordinate reference system (CRS; projection) WGS84 / 
   3. Cost-distance matrices from script #3
   4. A raster hillshade basemap for the SBOM which includes the lakes
 
-```{r, label='Import Data', message=FALSE,warning=FALSE}
+```{r, label='Import Data', message=FALSE, warning=FALSE}
 
 #TMP Architectural interpretation points
 TeoArch_Pts <- read.csv(paste0(wd$data_r,"TeoArchDataPts.csv"))
@@ -162,15 +162,19 @@ TABLE
 
 ```{r label='Reorganize Data', message=FALSE,warning=FALSE}
 
-## Rename some existing variables
+
+## Modify some existing variables
+#RingsPoly_Oval@data$Dist <- as.numeric(RingsPoly_Oval@data$Dist)
 names(TeoArch_Pts)[names(TeoArch_Pts) == 'Area_ha'] <- 'Area_ha_Pts'
 names(TeoArch_Pts)[names(TeoArch_Pts) == 'Area_m2'] <- 'Area_m2_Pts'
 names(TeoArch_Pts)[names(TeoArch_Pts) == 'Ring'] <- 'Ring_Circle'
+TeoArch_Poly@data$FID_1 <- as.numeric(TeoArch_Poly@data$FID_1)
 names(TeoArch_Poly@data)[names(TeoArch_Poly@data) == 'FID_1'] <- 'ID'
 names(TeoArch_Poly@data)[names(TeoArch_Poly@data) == 'Area_m2USE'] <- 'Area_m2'
 names(TeoArch_Poly@data)[names(TeoArch_Poly@data) == 'EastUSE'] <- 'East_Poly'
 names(TeoArch_Poly@data)[names(TeoArch_Poly@data) == 'NorthUSE'] <- 'North_Poly'
 names(TeoArch_Poly@data)[names(TeoArch_Poly@data) == 'Ring'] <- 'Ring_Oval'
+
 
 ## Calculate Area_ha for TeoArch_Poly@data
 TeoArch_Poly@data$Area_ha <- TeoArch_Poly@data$Area_m2 / 10000
@@ -187,6 +191,10 @@ if (length(validate1) == 0 & length(validate2) == 0){
   
   Teo_Poly_Data <- sp::merge(TeoArch_Poly, TeoArch_Pts, by="ID")
   
+  #TeoArch_Poly <- TeoArch_Poly[order(TeoArch_Poly$ID),]
+  #TeoArch_Pts <- TeoArch_Pts[order(TeoArch_Pts$ID),]
+  #identical(TeoArch_Pts$ID, TeoArch_Poly@data$ID)
+
   Teo_Poly_Data.sf <- st_as_sf(Teo_Poly_Data)
   #writeOGR(Teo_Poly_Data, paste0(wd$data_p,"TMPArchPoly_Data.gpkg"), 
   #         "TMPArchPoly_Data", driver = "GPKG", overwrite_layer = T)
@@ -267,7 +275,7 @@ rm(RingsPoly_Oval.sf,RingsPoly_Circle.sf,p_circ,p_oval,compare_rings,TMP_MapPoly
 TeoRings_Circ <- CalcRingData(PolyData = Teo_Poly_Data,
                               RingsPoly = RingsPoly_Circle,
                               RingVersion = "Ring_Circle",
-                              output_arch_data = T,
+                              output_arch_data = F,
                               output_ring_data = T)
 
 ## Calculate Oval Rings Data
@@ -279,6 +287,9 @@ TeoRings_Oval <- CalcRingData(PolyData = Teo_Poly_Data,
                               output_ring_data = T)
 
 ## Save List output items as separate objects
+Teo_ArchPoly_Data <- TeoRings_Oval[[2]]
+TeoRings_Oval <- TeoRings_Oval[[1]]
+
 
 ```
 
@@ -634,24 +645,21 @@ Ring_Data <- Ring_Data %>%
 
 ```{r}
 
-write.csv(Ring_Data, "TeoRingsData_5.6.22.csv")
+write.csv(TeoRings_Circ, paste0(wd$data_f,"TeoRings_Circ.csv"))
 
-if (RingVersion == "Ring_Oval") {
-  nrings <- nrow(RingsPoly_New@data)
-  RingsPoly <- RingsPoly_New
-}
+write.csv(TeoRings_Oval, paste0(wd$data_f,"TeoRings_Oval.csv"))
 
-if (RingVersion == "Ring_Circle") {
-  nrings <- nrow(RingsPoly_Old@data)
-  RingsPoly <- RingsPoly_Old
-}
+writeOGR(Teo_ArchPoly_Data, paste0(wd$data_f,"Teo_ArchPoly_Data.gpkg"), "Teo_ArchPoly_Data", driver = "GPKG", overwrite_layer=TRUE)
+
 ```
 
 
 
 
 
-
+yy = TeoArch_Pts %>% filter(is.na(Ring_Circle))
+>   Teo_Poly_Data <- sp::merge(TeoArch_Poly, TeoArch_Pts, by="ID")
+> xx = Teo_Poly_Data@data %>% filter(is.na(Ring_Circle))
 
 
 

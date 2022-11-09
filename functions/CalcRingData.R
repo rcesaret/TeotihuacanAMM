@@ -29,7 +29,7 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
                         output_arch_data = F,
                         output_ring_data = T){
   
-  nrings <- nrow(RingsPoly)
+  #nrings <- nrow(RingsPoly)
   
   #Create binary land use classification helper variables
   
@@ -178,10 +178,10 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
   ## Construct Ring Dataset
   
   
-  Ring <- c(1:nrings)    
-  MinRingDist <- seq(0,((nrings-1)*500),by=500)
-  MedRingDist <- seq(250,(((nrings-1)*500)+250),by=500)
-  MaxRingDist <- seq(500,(((nrings-1)*500)+500),by=500)
+  Ring <- RingsPoly@data$Ring   
+  MinRingDist <- RingsPoly@data$Dist - 500
+  MedRingDist <- RingsPoly@data$Dist - 250
+  MaxRingDist <- RingsPoly@data$Dist 
   Ring_Area <- RingsPoly@data$Area_ha
   Popdens_TOT = Teo_Rings$Pop_TOT / Ring_Area
   Pop_TOT = Teo_Rings$Pop_TOT
@@ -313,6 +313,20 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
   
   
   ## Outputs
+  
+  if (output_arch_data == F & output_ring_data == T){
+    outputs <- Ring_Data
+  }
+  
+  if (output_arch_data == T & output_ring_data == F){
+    outputs <- PolyData
+  }
+  
+  if (output_arch_data == T & output_ring_data == T){
+    outputs <- list(Ring_Data, PolyData)
+  }
+  
+  return(outputs)
   
 }
 
