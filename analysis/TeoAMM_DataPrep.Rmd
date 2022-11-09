@@ -1,30 +1,658 @@
 ---
-title: "TeoAMM_DataPrep"
+title: "Teotihuacan AMM, Script #1:"
+subtitle: "Data Prep and Dataset Construction"
 author: "Rudolf Cesaretti"
-date: "2022-11-09"
-output: html_document
+date: "Last run on `r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    df_print: paged
+    number_sections: true
+bibliography: References.bib
+csl: apa.csl
+link-citations: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{css, echo=FALSE}
+pre {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+pre[class] {
+  max-height: 300px;
+}
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r, setup, include=FALSE,echo=FALSE, message=FALSE,warning=FALSE}
+require(knitr)
+# Set so that long lines in R will be wrapped:
+opts_chunk$set(tidy.opts=list(width.cutoff=75),tidy=TRUE)
+#
+rm(list = ls())
 ```
 
-## Including Plots
+This R markdown document : 
+Topographic/environmental metrics
 
-You can also embed plots, for example:
+  1. Calculate catchment area variables, including
+      + Topographic/environmental metrics
+      + 
+  4. Reorganize the data and export for Script #6
+  
+  
+# Setup 
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+All of the data and scripts are downloadable from the [new Teotihuacan AMM Analysis github repository](https://https://github.com/rcesaret/ASUSettlementPersist2022), which can be cloned to your own account/computer or downloaded directly as a .zip folder.
+
+Either way, once you have done so, you will need to modify the working directory (setwd("C:/...)") path and "dir" variables in the code chunk below to match the repository location on your computer.
+
+```{r, label='Set Local Directory Location', message=FALSE,warning=FALSE}
+
+wd <- list()
+
+#SET YOUR LOCAL DIRECTORY LOCATION HERE:
+#wd$dir <- "C:/Users/rcesaret/Dropbox (ASU)/TeotihuacanDean/TeotihuacanAMM/"
+wd$dir <- "C:/Users/TJ McMote/Dropbox (ASU)/TeotihuacanDean/TeotihuacanAMM/"
+
+wd$analysis <- paste0(wd$dir,"analysis/")
+wd$data_r <- paste0(wd$dir,"data-raw/")
+wd$data_p <- paste0(wd$dir,"data-processed/")
+wd$data_f <- paste0(wd$dir,"data-final-outputs/")
+wd$figs <- paste0(wd$dir,"figures/")
+wd$funcs <- paste0(wd$dir,"functions/")
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Load R Packages and Custom Functions
+
+```{r, label='Load Libraries', message=FALSE,warning=FALSE}
+# Package names
+packages <- c("rgdal", "rgeos", "sp", "sf", "GISTools", "raster", "Matrix", 
+              "gdistance", "lwgeom", "data.table", "tidyverse", "tidyr", "stars",
+              "ggnewscale", "cowplot")# "spatialEco","purrr",
+
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+# load packages
+invisible(lapply(packages, library, character.only = TRUE))
+
+rm(packages,installed_packages)
+
+#Read in custom R functions located in the wd$funcs directory folder
+FUNCS <- list("HelperFunctions.R", "CalcRingData.R")
+invisible(lapply(FUNCS, function(x) source(paste0(wd$funcs,x))))
+rm(FUNCS)
+
+```
+
+
+
+
+
+## Import Data
+
+Data we are importing:
+
+  1. TeoArchDataPts.csv
+  2. TMPArchAnalysis_v3_5.6.22.gpkg
+  3. TMP survey limit polygon
+  4. TMP Rings
+  5. Rivers
+  6. Raster Basemap
+  7. Points for labels on maps
+
+EXPLAIN WHAT EACH FILE IS
+
+Refer to metadata
+
+
+The primary class spatial data format used in this script is the Spatial Polygon Dataframe (spdf) class from the “sp” R package. While I frequently switch back-and-forth to the “Simple Features” (sf) class from the “sf” R package data, I make sure to revert to Spatial Polygon Dataframe (spdf) after all sf calculations.
+
+We will be working in the coordinate reference system (CRS; projection) WGS84 / UTM Zone 14N (ESPG:32614) for the entirety of this analysis.
+
+
+
+  2. A simple polygon calculated in QGIS that specifies a hard outer border for the catchment areas of sites (constructed for sensitivity to survey borders and sites not included in the SBOM sample)
+  3. Cost-distance matrices from script #3
+  4. A raster hillshade basemap for the SBOM which includes the lakes
+
+```{r, label='Import Data', message=FALSE,warning=FALSE}
+
+#TMP Architectural interpretation points
+TeoArch_Pts <- read.csv(paste0(wd$data_r,"TeoArchDataPts.csv"))
+
+#TMP Architecture polygons
+TeoArch_Poly <- readOGR(paste0(wd$data_r,"TMPArchPoly.gpkg"))
+
+#Added Open Space Arch Features
+# <- readOGR(paste0(wd$data_r,".gpkg"))
+
+#TMP Rings -- Orig, repositioned, rectangular
+RingsPoly_Circle <- readOGR(paste0(wd$data_r,"RingsPoly_Circle.gpkg"))
+RingsPoly_Oval <- readOGR(paste0(wd$data_r,"RingsPoly_Oval.gpkg"))
+
+#TMP survey limit polygon
+TMP_MapPoly <- readOGR(paste0(wd$data_r,"TMP_Map_Poly_Extent.gpkg"))
+
+
+#TMP raster basemap
+#Rivers
+
+
+
+```
+
+
+## Variables
+
+
+### Architectural Classifications
+
+TABLE
+
+
+## Data Integration
+
+
+```{r label='Reorganize Data', message=FALSE,warning=FALSE}
+
+## Rename some existing variables
+names(TeoArch_Pts)[names(TeoArch_Pts) == 'Area_ha'] <- 'Area_ha_Pts'
+names(TeoArch_Pts)[names(TeoArch_Pts) == 'Area_m2'] <- 'Area_m2_Pts'
+names(TeoArch_Pts)[names(TeoArch_Pts) == 'Ring'] <- 'Ring_Circle'
+names(TeoArch_Poly@data)[names(TeoArch_Poly@data) == 'FID_1'] <- 'ID'
+names(TeoArch_Poly@data)[names(TeoArch_Poly@data) == 'Area_m2USE'] <- 'Area_m2'
+names(TeoArch_Poly@data)[names(TeoArch_Poly@data) == 'EastUSE'] <- 'East_Poly'
+names(TeoArch_Poly@data)[names(TeoArch_Poly@data) == 'NorthUSE'] <- 'North_Poly'
+names(TeoArch_Poly@data)[names(TeoArch_Poly@data) == 'Ring'] <- 'Ring_Oval'
+
+## Calculate Area_ha for TeoArch_Poly@data
+TeoArch_Poly@data$Area_ha <- TeoArch_Poly@data$Area_m2 / 10000
+
+## Check to see if the data match perfectly:
+x = as.numeric(TeoArch_Pts$ID)
+y = as.numeric(TeoArch_Poly@data$ID)
+validate1 <- setdiff(x,y)
+validate2 <- setdiff(y,x)
+
+## If the data match perfectly, merge the point and polygon data
+
+if (length(validate1) == 0 & length(validate2) == 0){
+  
+  Teo_Poly_Data <- sp::merge(TeoArch_Poly, TeoArch_Pts, by="ID")
+  
+  Teo_Poly_Data.sf <- st_as_sf(Teo_Poly_Data)
+  #writeOGR(Teo_Poly_Data, paste0(wd$data_p,"TMPArchPoly_Data.gpkg"), 
+  #         "TMPArchPoly_Data", driver = "GPKG", overwrite_layer = T)
+  
+  rm(x,y,validate1,validate2)#TeoArch_Pts, TeoArch_Poly)
+  
+} else {
+  paste("Point data and polygon data do not match perfectly!")
+}
+
+```
+
+
+
+
+# Classification of Open Space
+
+
+--cut open space into polys by ring, given 
+
+THIS GOES AFTER DATA INTEGRATION
+--Integrate again --> another file that contains the open space classes
+
+
+```{r label='', message=FALSE,warning=FALSE}
+
+```
+
+
+# Calculating Concentric Ring Data
+
+
+## Alternative Ring Layouts
+
+
+maps side-by-side to show difference
+
+```{r, 'comparrison maps of ring variants', echo=FALSE, message=FALSE,warning=FALSE}
+
+RingsPoly_Oval.sf <- st_as_sf(RingsPoly_Oval)
+RingsPoly_Circle.sf <- st_as_sf(RingsPoly_Circle)
+TMP_MapPoly.sf <- st_as_sf(TMP_MapPoly)
+
+p_circ = ggplot() + 
+  geom_sf(data = Teo_Poly_Data.sf, aes(geometry = geometry),color="black", size=0.1, fill="blue") +
+  geom_sf(data = RingsPoly_Circle.sf, aes(geometry = geometry), color="red", size=1, alpha = 0) +
+  geom_sf(data = TMP_MapPoly.sf, aes(geometry = geometry), color="black", size=1.1, alpha = 0) +
+  labs(title= "Circular 500-meter Rings",subtitle="Center = Point = In front of Sun Pyramid")+
+  coord_sf()+
+  theme_void()+
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16),
+        plot.subtitle = element_text(hjust = 0.5, face="bold", size=12),
+        plot.background = element_rect(fill = "white", colour = NA))
+
+p_oval = ggplot() + 
+  geom_sf(data = Teo_Poly_Data.sf, aes(geometry = geometry),color="black", size=0.1, fill="blue") +
+  geom_sf(data = RingsPoly_Oval.sf, aes(geometry = geometry), color="red", size=1, alpha = 0) +
+  geom_sf(data = TMP_MapPoly.sf, aes(geometry = geometry), color="black", size=1.1, alpha = 0) +
+  labs(title= "Oval 500-meter Rings",subtitle="Center = Line = Avenue of the Dead")+
+  coord_sf()+
+  theme_void()+
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16),
+        plot.subtitle = element_text(hjust = 0.5, face="bold", size=12),
+        plot.background = element_rect(fill = "white", colour = NA))
+
+compare_rings <- plot_grid(p_circ, p_oval)
+compare_rings
+rm(RingsPoly_Oval.sf,RingsPoly_Circle.sf,p_circ,p_oval,compare_rings,TMP_MapPoly.sf)
+```
+
+
+## Create Ring Datasets
+
+```{r label='', message=FALSE,warning=FALSE}
+
+## Calculate Circular Rings Data
+
+TeoRings_Circ <- CalcRingData(PolyData = Teo_Poly_Data,
+                              RingsPoly = RingsPoly_Circle,
+                              RingVersion = "Ring_Circle",
+                              output_arch_data = T,
+                              output_ring_data = T)
+
+## Calculate Oval Rings Data
+
+TeoRings_Oval <- CalcRingData(PolyData = Teo_Poly_Data,
+                              RingsPoly = RingsPoly_Oval,
+                              RingVersion = "Ring_Oval",
+                              output_arch_data = T,
+                              output_ring_data = T)
+
+## Save List output items as separate objects
+
+```
+
+
+
+# Calc Rings
+
+## Choose Ring Layout
+
+```{r}
+
+RingVersion <- "Ring_Oval"
+#RingVersion <- "Ring_Circle"
+
+if (RingVersion == "Ring_Oval") {
+  nrings <- nrow(RingsPoly_Oval@data)
+  RingsPoly <- RingsPoly_Oval
+}
+
+if (RingVersion == "Ring_Circle") {
+  nrings <- nrow(RingsPoly_Circle@data)
+  RingsPoly <- RingsPoly_Circle
+}
+
+```
+
+
+## Calculate Helper Variables
+
+```{r label='Calculate Helper Variables', message=FALSE, warning=FALSE}
+
+#Create binary land use classification helper variables
+
+Teo_Poly_Data@data <- Teo_Poly_Data@data %>%  mutate(
+            XM_OB_bi = ifelse(XM_c == 1, 1, 0),
+            XM_Low_bi = ifelse(XM_c == 1, 1, 0),
+            XM_IM_bi = ifelse(XM_c == 2, 1, 0),
+            XM_UncertStat_bi = ifelse(XM_c == 3, 1, 0),
+            XM_High_bi = ifelse(XM_c == 4, 1, 0),
+            XM_PlatOther_bi = ifelse(XM_c == 5, 1, 0),
+            XM_Altar_bi = ifelse(XM_c == 6, 1, 0),
+            XM_PlatformRelig_bi = ifelse(XM_c == 9, 1, 0),
+            XM_Religious_bi = ifelse(XM_c == 10, 1, 0),
+            XM_ProbTemple_bi = ifelse(XM_c == 16, 1, 0),
+            XM_Civic_bi = ifelse(XM_c == 17, 1, 0),
+            XM_AoD_bi = ifelse(XM_c == 18, 1, 0),
+            XM_Plaza_bi = ifelse(XM_c == 28, 1, 0),
+            XM_Other_bi = ifelse(XM_c == 99, 1, 0),
+            XM_Unk_bi = ifelse(XM_c == 100, 1, 0),
+            XM_Unoccu_bi = ifelse(XM_c == -2, 1, 0),
+            XM_grp_OB_bi = ifelse(XM_group_c == 0, 1, 0),
+            XM_grp_Low_bi = ifelse(XM_group_c == 1, 1, 0),
+            XM_grp_IM_bi = ifelse(XM_group_c == 2, 1, 0),
+            XM_grp_UncertStat_bi = ifelse(XM_group_c == 3, 1, 0),
+            XM_grp_High_bi = ifelse(XM_group_c == 4, 1, 0),
+            XM_grp_DomPlat_bi = ifelse(XM_group_c == 5, 1, 0),
+            XM_grp_CCFeat_bi = ifelse(XM_group_c == 6, 1, 0),
+            XM_grp_AoD_bi = ifelse(XM_group_c == 7, 1, 0),
+            XM_grp_Plaza_bi = ifelse(XM_group_c == 9, 1, 0),
+            XM_grp_Other_bi = ifelse(XM_group_c == 10, 1, 0),
+            XM_grp_Unk_bi = ifelse(XM_c == 11, 1, 0),
+            XM_grp_Unoccu_bi = ifelse(XM_c == 12, 1, 0),
+            XM_macro_OB_bi = ifelse(XM_macro_c == 0, 1, 0),
+            XM_macro_DStr_bi = ifelse(XM_macro_c == 1, 1, 0),
+            XM_macro_DomPlat_bi = ifelse(XM_macro_c == 2, 1, 0),
+            XM_macro_CCFeatO_bi = ifelse(XM_macro_c == 3, 1, 0),
+            XM_macro_Unk_bi = ifelse(XM_macro_c == 4, 1, 0),
+            XM_macro_Unoccu_bi = ifelse(XM_macro_c == 5, 1, 0))
+
+#sum(is.na(TeoDataPts_Rings[,36:227]))
+
+Teo_Poly_Data@data <- Teo_Poly_Data@data %>%  mutate(
+    XM_Pop_Low = XM_Low_bi * XM_Pop,
+    XM_Area_Low = XM_Low_bi * Area_m2,
+    XM_Pop_IM = XM_IM_bi * XM_Pop,
+    XM_Area_IM = XM_IM_bi * Area_m2,
+    XM_Pop_High = XM_High_bi * XM_Pop,
+    XM_Area_High = XM_High_bi * Area_m2,
+    XM_Pop_UncertStat = XM_UncertStat_bi * XM_Pop,
+    XM_Area_UncertStat = XM_UncertStat_bi * Area_m2)
+
+Teo_Poly_Data@data <- Teo_Poly_Data@data %>%  mutate(
+    XM_Area_CCFeat = XM_grp_CCFeat_bi * Area_m2,
+    XM_Area_CCFeatO = XM_macro_CCFeatO_bi * Area_m2,
+    XM_Area_DStr = XM_macro_DStr_bi * Area_m2,
+    XM_Area_OB = XM_grp_OB_bi * Area_m2,
+    XM_Area_Unoccu = XM_macro_Unoccu_bi * Area_m2,
+    XM_Area_DomPlat = XM_grp_DomPlat_bi * Area_m2,
+    XM_Area_Unk = XM_macro_Unk_bi * Area_m2,
+    XM_Pop = XM_Pop_Low + XM_Pop_IM + XM_Pop_High + XM_Pop_UncertStat)
+
+```
+
+
+
+## Summarize Data By Ring
+
+```{r label='', message=FALSE,warning=FALSE}
+my_mean <- function(x) mean(x[x != 0],na.rm = TRUE)
+my_median <- function(x) median(x[x != 0],na.rm = TRUE)
+
+Teo_Rings <- Teo_Poly_Data@data %>%
+  group_by(!!sym(RingVersion)) %>%
+  summarise(
+    Pop_TOT = sum(XM_Pop, na.rm=T),
+    DStr_TOT = sum(XM_macro_DStr_bi, na.rm=T),
+    Area_DStr = sum(XM_Area_DStr, na.rm=T) * 0.0001,
+    NonCC_Feat_TOT = sum(XM_macro_Unoccu_bi, na.rm=T) + sum(XM_macro_Unk_bi, na.rm=T) + sum(XM_macro_DStr_bi, na.rm=T) + sum(XM_macro_DomPlat_bi, na.rm=T) + sum(XM_macro_OB_bi, na.rm=T),
+    
+    NonCC_Feat_Area = (sum(XM_Area_Unoccu, na.rm=T) + sum(XM_Area_Unk, na.rm=T) + sum(XM_Area_DStr, na.rm=T) + sum(XM_Area_OB, na.rm=T) + sum(XM_Area_DomPlat, na.rm=T)) * 0.0001,
+    
+    NonCCDStr_TOT = sum(XM_macro_Unoccu_bi, na.rm=T) + sum(XM_macro_Unk_bi, na.rm=T) + sum(XM_macro_DomPlat_bi, na.rm=T) + sum(XM_macro_OB_bi, na.rm=T),
+
+    NonCCDStr_Area = (sum(XM_Area_Unoccu, na.rm=T) + sum(XM_Area_Unk, na.rm=T) + sum(XM_Area_OB, na.rm=T) + sum(XM_Area_DomPlat, na.rm=T)) * 0.0001,
+
+    OB = sum(XM_grp_OB_bi, na.rm=T),
+    OB_Area = sum(XM_Area_OB, na.rm=T) * 0.0001,
+    Unoccu = sum(XM_macro_Unoccu_bi, na.rm=T),
+    Unoccu_Area = sum(XM_Area_Unoccu, na.rm=T) * 0.0001,
+    DomPlat = sum(XM_macro_DomPlat_bi, na.rm=T),
+    DomPlat_Area = sum(XM_Area_DomPlat, na.rm=T) * 0.0001,
+    Unk = sum(XM_macro_Unk_bi, na.rm=T),
+    Unk_Area = sum(XM_Area_Unk, na.rm=T) * 0.0001,
+    CCStr = sum((XM_grp_CCFeat_bi), na.rm=T),
+    CCStrArea = sum(XM_Area_CCFeat, na.rm=T) * 0.0001,
+    AoD = sum(XM_grp_AoD_bi, na.rm=T),
+    AoD_Area = sum((XM_grp_AoD_bi * Area_m2), na.rm=T) * 0.0001,
+    Plazas = sum(XM_Plaza_bi, na.rm=T),
+    Plaza_Area = sum((XM_Plaza_bi * Area_m2), na.rm=T) * 0.0001,
+    PlazAoD_O = sum(XM_Plaza_bi, na.rm=T) + sum(XM_grp_AoD_bi, na.rm=T),
+    PlazAoD_O_Area = (sum((XM_Plaza_bi * Area_m2), na.rm=T) + sum((XM_grp_AoD_bi * Area_m2), na.rm=T)) * 0.0001,
+    CCFeat_AoD_Area = (sum((XM_grp_AoD_bi * Area_m2), na.rm=T) + sum(XM_Area_CCFeat, na.rm=T))* 0.0001,
+    CCFeat_O_Area = sum(XM_Area_CCFeatO, na.rm=T) * 0.0001,
+    
+    UnOccuFeat = sum(NonCCDStr_TOT, na.rm=T),
+    UnOccuFeat_Area = sum(NonCCDStr_Area, na.rm=T) * 0.0001,
+    
+    Elite_DStr = sum(XM_grp_High_bi, na.rm=T),
+    Elite_Pop = sum(XM_Pop_High, na.rm=T),
+    Elite_DStrArea = sum(XM_Area_High, na.rm=T) * 0.0001,
+    Avg_Elite_DStrArea = my_mean(XM_Area_High) * 0.0001,
+    Med_Elite_DStrArea = my_median(XM_Area_High) * 0.0001,
+    Avg_Elite_DStrPop = my_mean(XM_Pop_High),
+    IM_DStr = sum(XM_grp_IM_bi, na.rm=T),
+    IM_Pop = sum(XM_Pop_IM, na.rm=T),
+    IM_DStrArea = sum(XM_Area_IM, na.rm=T) * 0.0001,
+    Avg_IM_DStrArea = my_mean(XM_Area_IM) * 0.0001,
+    Med_IM_DStrArea = my_median(XM_Area_IM) * 0.0001,
+    Avg_IM_DStrPop = my_mean(XM_Pop_IM),
+    Low_DStr = sum(XM_grp_Low_bi, na.rm=T),
+    Low_Pop = sum(XM_Pop_Low, na.rm=T),
+    Low_DStrArea = sum(XM_Area_Low, na.rm=T) * 0.0001,
+    Avg_Low_DStrArea = my_mean(XM_Area_Low) * 0.0001,
+    Med_Low_DStrArea = my_median(XM_Area_Low) * 0.0001,
+    Avg_Low_DStrPop = my_mean(XM_Pop_Low),
+    UncerStat_DStr = sum(XM_grp_UncertStat_bi, na.rm=T),
+    UncerStat_Pop = sum(XM_Pop_UncertStat, na.rm=T),
+    UncerStat_Area = sum(XM_Area_UncertStat, na.rm=T) * 0.0001,
+    Avg_UncerStat_DStrArea = my_mean(XM_Area_UncertStat) * 0.0001,
+    Med_UncerStat_DStrArea = my_median(XM_Area_UncertStat) * 0.0001,
+    Avg_UncerStat_DStrPop = my_mean(XM_Pop_UncertStat))
+    
+#Teo_Rings = Teo_Rings[-c(1,12),]
+Teo_Rings$Avg_Elite_DStrArea[is.nan(Teo_Rings$Avg_Elite_DStrArea)]<-0
+Teo_Rings$Med_Elite_DStrArea[is.nan(Teo_Rings$Med_Elite_DStrArea)]<-0
+Teo_Rings$Avg_Elite_DStrPop[is.nan(Teo_Rings$Avg_Elite_DStrPop)]<-0
+Teo_Rings$Avg_IM_DStrArea[is.nan(Teo_Rings$Avg_IM_DStrArea)]<-0
+Teo_Rings$Med_IM_DStrArea[is.nan(Teo_Rings$Med_IM_DStrArea)]<-0
+Teo_Rings$Avg_IM_DStrPop[is.nan(Teo_Rings$Avg_IM_DStrPop)]<-0
+Teo_Rings$Avg_Low_DStrArea[is.nan(Teo_Rings$Avg_Low_DStrArea)]<-0
+Teo_Rings$Med_Low_DStrArea[is.nan(Teo_Rings$Med_Low_DStrArea)]<-0
+Teo_Rings$Avg_UncerStat_DStrArea[is.nan(Teo_Rings$Avg_UncerStat_DStrArea)]<-0
+Teo_Rings$Med_UncerStat_DStrArea[is.nan(Teo_Rings$Med_UncerStat_DStrArea)]<-0
+Teo_Rings$Avg_UncerStat_DStrPop[is.nan(Teo_Rings$Avg_UncerStat_DStrPop)]<-0    
+Teo_Rings[is.na(Teo_Rings)] <- 0
+```
+
+ [1] "Ring"                   "Pop_TOT"                "DStr_TOT"               "Area_DStr"             
+ [5] "NonCC_Feat_TOT"         "NonCC_Feat_Area"        "NonCCDStr_TOT"          "NonCCDStr_Area"        
+ [9] "OB"                     "OB_Area"                "Unoccu"                 "Unoccu_Area"           
+[13] "DomPlat"                "DomPlat_Area"           "Unk"                    "Unk_Area"              
+[17] "CCStr"                  "CCStrArea"              "AoD"                    "AoD_Area"              
+[21] "Plazas"                 "Plaza_Area"             "PlazAoD_O"              "PlazAoD_O_Area"        
+[25] "CCFeat_AoD_Area"        "CCFeat_O_Area"          "UnOccuFeat"             "UnOccuFeat_Area"       
+[29] "Elite_DStr"             "Elite_Pop"              "Elite_DStrArea"         "Avg_Elite_DStrArea"    
+[33] "Med_Elite_DStrArea"     "Avg_Elite_DStrPop"      "IM_DStr"                "IM_Pop"                
+[37] "IM_DStrArea"            "Avg_IM_DStrArea"        "Med_IM_DStrArea"        "Avg_IM_DStrPop"        
+[41] "Low_DStr"               "Low_Pop"                "Low_DStrArea"           "Avg_Low_DStrArea"      
+[45] "Med_Low_DStrArea"       "Avg_Low_DStrPop"        "UncerStat_DStr"         "UncerStat_Pop"         
+[49] "UncerStat_Area"         "Avg_UncerStat_DStrArea" "Med_UncerStat_DStrArea" "Avg_UncerStat_DStrPop" 
+
+
+
+## Construct Ring Dataset
+
+```{r label='', message=FALSE,warning=FALSE}
+
+Ring <- c(1:nrings)    
+MinRingDist <- seq(0,((nrings-1)*500),by=500)
+MedRingDist <- seq(250,(((nrings-1)*500)+250),by=500)
+MaxRingDist <- seq(500,(((nrings-1)*500)+500),by=500)
+Ring_Area <- RingsPoly@data$Area_ha
+Popdens_TOT = Teo_Rings$Pop_TOT / Ring_Area
+Pop_TOT = Teo_Rings$Pop_TOT
+DStr_TOT = Teo_Rings$DStr_TOT
+Area_DStr = Teo_Rings$Area_DStr
+Ring_Data <- data.frame(Ring,MinRingDist,MedRingDist,MaxRingDist,Ring_Area,Pop_TOT,Popdens_TOT,DStr_TOT,Area_DStr)
+Next <- Teo_Rings[,c(5:28)]
+Elite <- Teo_Rings[,c(29:34)]
+IM <- Teo_Rings[,c(35:40)]
+Low <- Teo_Rings[,c(41:46)]
+UncertStat <- Teo_Rings[,c(47:52)]
+
+Ring_Data <-cbind(Ring_Data, Next)
+
+
+Ring_Data <- Ring_Data %>%
+    mutate(Popdens_DStrArea = Pop_TOT / Area_DStr,
+    Area_NonDStr = Ring_Area - Area_DStr,
+    Area_NonCCZone = Ring_Area - CCStrArea,
+    Popdens_NonCCZone = Pop_TOT / Area_NonCCZone,
+    Area_NonCCZone_AoD = Ring_Area - CCFeat_AoD_Area,
+    Popdens_NonCCZone_AoD = Pop_TOT / Area_NonCCZone_AoD,
+    Area_NonCCZone_O = Ring_Area - CCFeat_O_Area,
+    Popdens_NonCCZone_O = Pop_TOT / Area_NonCCZone_O,
+    Area_Open = Ring_Area - (NonCC_Feat_Area + CCFeat_O_Area),
+    Area_OpenUnoccu = Ring_Area - ((NonCC_Feat_Area - Unoccu_Area) + CCFeat_O_Area),
+    PctRow_Area_DStr = Area_DStr / Ring_Area,
+    PctRow_Area_NonDStr = (Ring_Area - Area_DStr) / Ring_Area,
+    PctRow_Area_CCFeat_AoD = CCFeat_AoD_Area / Ring_Area,
+    PctRow_Area_CCFeat_O = CCFeat_O_Area / Ring_Area,
+    PctRow_Area_CCStr = CCStrArea / Ring_Area,
+    PctRow_Area_Open = Area_Open / Ring_Area,
+    PctRow_Area_OpenUnoccu = Area_OpenUnoccu / Ring_Area,
+    PctRow_Area_NonCCZone = Area_NonCCZone / Ring_Area,
+    PctRow_Area_NonCCZone_AoD = Area_NonCCZone_AoD / Ring_Area,
+    PctRow_Area_NonCCZone_O = Area_NonCCZone_O / Ring_Area,
+    PctRow_Area_UnOccuFeat = UnOccuFeat_Area / Ring_Area,
+    PctRow_Area_Unk = Unk_Area / Ring_Area,
+    PctRow_Area_OB = OB_Area / Ring_Area,
+    PctRow_Area_AoD = AoD_Area / Ring_Area,
+    PctRow_Area_Plazas = Plaza_Area / Ring_Area,
+    PctRow_Area_DomPlat = DomPlat_Area / Ring_Area,
+    PctCol_Area_DStr = Area_DStr / sum(Area_DStr),
+    PctCol_Area_NonDStr = Area_NonDStr / sum(Area_NonDStr),
+
+    PctCol_Area_CCFeat_AoD = CCFeat_AoD_Area / sum(CCFeat_AoD_Area),
+    PctCol_Area_CCFeat_O = CCFeat_O_Area / sum(CCFeat_O_Area),
+
+    PctCol_Area_CCStr = CCStrArea / sum(CCStrArea),
+    PctCol_Area_Open = Area_Open / sum(Area_Open),
+    PctCol_Area_OpenFields = Area_OpenUnoccu / sum(Area_OpenUnoccu),
+    PctCol_Area_NonCCZone = Area_NonCCZone / sum(Area_NonCCZone),
+    PctCol_Area_NonCCZone_M = Area_NonCCZone_AoD / sum(Area_NonCCZone_AoD),
+    PctCol_Area_NonCCZone_O = Area_NonCCZone_O / sum(Area_NonCCZone_O),
+    PctCol_Area_UnOccuFeat = UnOccuFeat_Area / sum(UnOccuFeat_Area),
+    PctCol_Area_Unk = Unk_Area / sum(Unk_Area),
+    PctCol_Area_OB = OB_Area / sum(OB_Area),
+    PctCol_Area_AoD = AoD_Area / sum(AoD_Area),
+    PctCol_Area_Plazas = Plaza_Area / sum(Plaza_Area),
+    PctCol_Area_DomPlat = DomPlat_Area / sum(DomPlat_Area))
+    
+Ring_Data <-cbind(Ring_Data, Elite)
+
+Ring_Data <- Ring_Data %>%
+    mutate(PctRow_DStr_Elite = Elite_DStr / DStr_TOT,
+    PctRow_Pop_Elite = Elite_Pop / Pop_TOT,
+    PctRow_DStrArea_Elite = Elite_DStrArea / Area_DStr,
+    PctCol_DStr_Elite = Elite_DStr / sum(Elite_DStr),
+    PctCol_Pop_Elite = Elite_Pop / sum(Elite_Pop),
+    PctCol_DStrArea_Elite = Elite_DStrArea / sum(Elite_DStrArea),
+    Elite_Popdens_NonCCZone = Elite_Pop / Area_NonCCZone,
+    Elite_Popdens_NonCCZone_AoD = Elite_Pop / Area_NonCCZone_AoD,
+    Elite_Popdens_NonCCZone_O = Elite_Pop / Area_NonCCZone_O,
+    Elite_Popdens_EliteDStrArea = Elite_Pop / Elite_DStrArea,
+    Elite_Popdens_TOTArea = Elite_Pop / Ring_Area)
+
+Ring_Data$PctCol_DStrArea_Elite[is.nan(Ring_Data$PctCol_DStrArea_Elite)]<-0
+Ring_Data$Elite_Popdens_EliteDStrArea[is.nan(Ring_Data$Elite_Popdens_EliteDStrArea)]<-0
+
+
+Ring_Data <-cbind(Ring_Data, IM)
+Ring_Data <- Ring_Data %>%
+    mutate(PctRow_DStr_IM = IM_DStr / DStr_TOT,
+    PctRow_Pop_IM = IM_Pop / Pop_TOT,
+    PctRow_DStrArea_IM = IM_DStrArea / Area_DStr,
+    PctCol_DStr_IM = IM_DStr / sum(IM_DStr),
+    PctCol_Pop_IM = IM_Pop / sum(IM_Pop),
+    PctCol_DStrArea_IM = IM_DStrArea / sum(IM_DStrArea),
+    IM_Popdens_NonCCZone = IM_Pop / Area_NonCCZone,
+    IM_Popdens_NonCCZone_AoD = IM_Pop / Area_NonCCZone_AoD,
+    IM_Popdens_NonCCZone_O = IM_Pop / Area_NonCCZone_O,
+    IM_Popdens_IMDStrArea = IM_Pop / IM_DStrArea,
+    IM_Popdens_TOTArea = IM_Pop / Ring_Area)
+    
+
+
+Ring_Data <-cbind(Ring_Data, Low)
+    
+Ring_Data <- Ring_Data %>%
+    mutate(PctRow_Ring_DStr_Low = Low_DStr / DStr_TOT,
+    PctRow_Ring_Pop_Low = Low_Pop / Pop_TOT,
+    PctRow_Ring_DStrArea_Low = Low_DStrArea / Area_DStr,
+    PctCol_Tot_LowDStr = Low_DStr / sum(Low_DStr),
+    PctCol_Tot_LowPop = Low_Pop / sum(Low_Pop),
+    PctCol_Tot_LowDStrArea = Low_DStrArea / sum(Low_DStrArea),
+    Low_Popdens_NonCCZone = Low_Pop / Area_NonCCZone,
+    Low_Popdens_NonCCZone_AoD = Low_Pop / Area_NonCCZone_AoD,
+    Low_Popdens_NonCCZone_O = Low_Pop / Area_NonCCZone_O,
+    Low_Popdens_TOTArea = Low_Pop / Ring_Area,
+    Low_Popdens_OpenArea = Low_Pop / Area_Open,
+    Low_Popdens_LowDStrArea = Low_Pop / Low_DStrArea)
+    
+
+Ring_Data <-cbind(Ring_Data, UncertStat)
+    
+Ring_Data <- Ring_Data %>%
+    mutate(PctRow_DStr_UncerStat = UncerStat_DStr / DStr_TOT,
+    PctRow_Pop_UncerStat = UncerStat_Pop / Pop_TOT,
+    PctRow_DStrArea_UncerStat = UncerStat_Area / Area_DStr,
+    PctCol_DStr_UncerStat = UncerStat_DStr / sum(UncerStat_DStr),
+    PctCol_Pop_UncerStat = UncerStat_Pop / sum(UncerStat_Pop),
+    PctCol_DStrArea_UncerStat = UncerStat_Area / sum(UncerStat_Area),
+    UncerStat_Popdens_NonCCZone = UncerStat_Pop / Area_NonCCZone,
+    UncerStat_Popdens_NonCCZone_AoD = UncerStat_Pop / Area_NonCCZone_AoD,
+    UncerStat_Popdens_NonCCZone_O = UncerStat_Pop / Area_NonCCZone_O,
+    UncerStat_Popdens_TOTArea = UncerStat_Pop / Ring_Area,
+    UncetStat_Popdens_OpenArea = UncerStat_Pop / Area_Open,
+    UncerStat_Popdens_UncerStatDStrArea = UncerStat_Pop / UncerStat_Area)
+    
+
+```
+
+
+
+
+
+
+
+## Ring Dataset Variables
+
+
+
+
+
+
+
+
+
+
+
+# Export Datasets for Analysis
+
+```{r}
+
+write.csv(Ring_Data, "TeoRingsData_5.6.22.csv")
+
+if (RingVersion == "Ring_Oval") {
+  nrings <- nrow(RingsPoly_New@data)
+  RingsPoly <- RingsPoly_New
+}
+
+if (RingVersion == "Ring_Circle") {
+  nrings <- nrow(RingsPoly_Old@data)
+  RingsPoly <- RingsPoly_Old
+}
+```
+
+
+
+
+
+
+
+
+
+
