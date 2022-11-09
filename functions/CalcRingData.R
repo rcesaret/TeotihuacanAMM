@@ -34,7 +34,7 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
   #Create binary land use classification helper variables
   
   PolyData@data <- PolyData@data %>%  mutate(
-    XM_OB_bi = ifelse(XM_c == 1, 1, 0),
+    XM_OB_bi = ifelse(XM_c == 0, 1, 0),
     XM_Low_bi = ifelse(XM_c == 1, 1, 0),
     XM_IM_bi = ifelse(XM_c == 2, 1, 0),
     XM_UncertStat_bi = ifelse(XM_c == 3, 1, 0),
@@ -234,7 +234,7 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
            PctCol_Area_Open = Area_Open / sum(Area_Open),
            PctCol_Area_OpenFields = Area_OpenUnoccu / sum(Area_OpenUnoccu),
            PctCol_Area_NonCCZone = Area_NonCCZone / sum(Area_NonCCZone),
-           PctCol_Area_NonCCZone_M = Area_NonCCZone_AoD / sum(Area_NonCCZone_AoD),
+           PctCol_Area_NonCCZone_AoD = Area_NonCCZone_AoD / sum(Area_NonCCZone_AoD),
            PctCol_Area_NonCCZone_O = Area_NonCCZone_O / sum(Area_NonCCZone_O),
            PctCol_Area_UnOccuFeat = UnOccuFeat_Area / sum(UnOccuFeat_Area),
            PctCol_Area_Unk = Unk_Area / sum(Unk_Area),
