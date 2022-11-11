@@ -187,7 +187,8 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
   Pop_TOT = Teo_Rings$Pop_TOT
   DStr_TOT = Teo_Rings$DStr_TOT
   Area_DStr = Teo_Rings$Area_DStr
-  Ring_Data <- data.frame(Ring,MinRingDist,MedRingDist,MaxRingDist,Ring_Area,Pop_TOT,Popdens_TOT,DStr_TOT,Area_DStr)
+  Avg_Area_DStr = Area_DStr / DStr_TOT
+  Ring_Data <- data.frame(Ring,MinRingDist,MedRingDist,MaxRingDist,Ring_Area,Pop_TOT,Popdens_TOT,DStr_TOT,Area_DStr,Avg_Area_DStr)
   Next <- Teo_Rings[,c(5:28)]
   Elite <- Teo_Rings[,c(29:34)]
   IM <- Teo_Rings[,c(35:40)]

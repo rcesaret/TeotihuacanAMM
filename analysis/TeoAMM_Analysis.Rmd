@@ -1,0 +1,614 @@
+---
+title: "Teotihuacan AMM, Script #2:"
+subtitle: "Analysis"
+author: "Rudolf Cesaretti"
+date: "Last run on `r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    df_print: paged
+    number_sections: true
+---
+
+
+```{r, setup, include=FALSE,echo=FALSE, message=FALSE,warning=FALSE}
+require(knitr)
+# Set so that long lines in R will be wrapped:
+opts_chunk$set(tidy.opts=list(width.cutoff=75),tidy=TRUE)
+#
+rm(list = ls())
+```
+
+
+  
+# Setup 
+
+All of the data and scripts are downloadable from the [new Teotihuacan AMM Analysis github repository](https://https://github.com/rcesaret/TeotihuacanAMM), which can be cloned to your own account/computer or downloaded directly as a .zip folder.
+
+Either way, once you have done so, you will need to modify the working directory (setwd("C:/...)") path and "dir" variables in the code chunk below to match the repository location on your computer.
+
+```{r, label='Set Local Directory Location', message=FALSE, warning=FALSE}
+
+wd <- list()
+
+#SET YOUR LOCAL DIRECTORY LOCATION HERE:
+#wd$dir <- "C:/Users/rcesaret/Dropbox (ASU)/TeotihuacanDean/TeotihuacanAMM/"
+wd$dir <- "C:/Users/TJ McMote/Dropbox (ASU)/TeotihuacanDean/TeotihuacanAMM/"
+
+wd$analysis <- paste0(wd$dir,"analysis/")
+wd$data_r <- paste0(wd$dir,"data-raw/")
+wd$data_p <- paste0(wd$dir,"data-processed/")
+wd$data_f <- paste0(wd$dir,"data-final-outputs/")
+wd$figs <- paste0(wd$dir,"figures/")
+wd$funcs <- paste0(wd$dir,"functions/")
+
+```
+
+
+
+## Load R Packages and Custom Functions
+
+
+
+
+```{r, label='Load Libraries', message=FALSE,warning=FALSE}
+# Package names
+packages <- c("rgdal", "rgeos", "sp", "sf", "GISTools", "raster","stars",
+              "tidyverse", "tidyr", "nls.multstart", "nlme", "brms", "broom", 
+              "ggrepel", "minpack.lm", "data.table", "zoo", "lmtest", "sandwich", 
+              "nlstools", "MASS", "NSM3", "gridExtra", "ggnewscale", "cowplot", 
+              "scales")
+
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+# load packages
+invisible(lapply(packages, library, character.only = TRUE))
+
+rm(packages,installed_packages)
+
+#Read in custom R functions located in the wd$funcs directory folder
+FUNCS <- list("RegressionResultsTab.R", "ModelPredFrame.R")
+invisible(lapply(FUNCS, function(x) source(paste0(wd$funcs,x))))
+rm(FUNCS)
+
+```
+
+
+## Import Data
+
+
+```{r, label='Import Data', message=FALSE, warning=FALSE}
+
+TeoRings_Circ <- read.csv(paste0(wd$data_f,"TeoRings_Circ.csv"))
+
+TeoRings_Oval <- read.csv(paste0(wd$data_f,"TeoRings_Oval.csv"))
+
+```
+
+writeOGR(Teo_ArchPoly_Data, paste0(wd$data_f,"Teo_ArchPoly_Data.gpkg"), "Teo_ArchPoly_Data", driver = "GPKG", overwrite_layer=TRUE)
+
+
+
+
+# Population Density Falloff Curve
+
+First, we must fit an exponential function to the falloff population density curve. We will fit a simple exponential model taking the form
+
+$D_{i} = \beta_{1} e^{\beta_{2}d_{i}} + \epsilon$
+
+where $D_{i}$ is the population density of the *i*th concentric ring (in persons per hectare), $d_{i}$ is the median distance of the *i*th concentric ring from the central point (in meters), and $\epsilon$ denotes independent and identically distributed (i.d.d.) Gaussian stochastic variability.
+ 
+```{r Define simple exponential function, include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
+expfunc <- function(MedRingDist, b1, b2) {
+  b1 * exp( b2 * MedRingDist )
+}
+```
+
+
+
+## Total Population Density
+
+Looking at the data, rings 3-10 seem to follow a tight pattern of exponential decay. However, we can see that the population density of the first two rings do not follow the pattern of exponential decay. As such, we will fit out first model to rings 3-10 only
+
+TeoRings_Circ
+
+geom_smooth(data = TeoRings_Oval, aes(x = MedRingDist, y = Popdens_TOT), se=F,linetype = "solid", color="red2", size=1.3)+
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+p1 <- ggplot(data = TeoRings_Oval, aes(x = MedRingDist, y = Popdens_TOT, 
+                                       xmin = MinRingDist, xmax = MaxRingDist, 
+                                       label=Ring)) +
+  geom_point(size=2, color="black", shape=16, stroke =2)+
+  geom_errorbarh(height=1.5, size=1) +
+  geom_text_repel(size=4,direction="y", fontface="bold", nudge_y=2, point.size=5) +#box.padding=1, 
+  #geom_text_repel(box.padding=1,size=5,fontface="bold", nudge_y=1.5) +# 
+  ggtitle("Total Population Density Gradient for 500-meter Concentric Rings", subtitle= "Teotihuacan, Xolalpan-Metepec Phase (c. AD 350-600)") +
+  xlab("Distance from Center (meters)") +
+  ylab("Total Pop Density (persons/ha)") +
+  theme_bw() +
+  #scale_y_continuous(expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)) +
+  #scale_x_continuous(expand = c(0, 0), limits=c(0,5000),breaks=seq(0,5000,500)) +
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+
+p1 + geom_point(data=TeoRings_Circ, size=2, color="blue", shape=16, stroke =2)
+
+```
+
+```{r include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
+#Estimate the model
+exp_nls_fit <- nls.multstart::nls_multstart(Popdens_TOT ~ expfunc(MedRingDist, b1, b2),
+                             data = TeoRings_Oval[-1,],
+                             start_lower = c(b1=250, b2=-1e-2),
+                             start_upper = c(b1=350, b2=-1e-4),
+                             iter = 500,
+                             supp_errors = "Y")
+
+pp = ModelPredFrame(exp_nls_fit,TeoRings_Oval[-1,],"MedRingDist","Popdens_TOT")
+
+```
+
+
+### Full Regression Results
+
+*"Robust" coef estimates estimated using covariance matrices corrected for heteroskedasticity and autocorrelation*
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+exp_nls_fit_results = RegressionResultsTab(exp_nls_fit, TeoRings_Oval[-1,], TeoRings_Oval[-1,]$MedRingDist, TeoRings_Oval[-1,]$Popdens_TOT, model_type="nls", coef="both", residplots=TRUE, residhists=TRUE)
+
+exp_nls_fit_results[[1]]
+exp_nls_fit_results[[2]]
+exp_nls_fit_results[[3]]
+```
+
+
+### Graph the Model
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+f4a <- ggplot() +
+  geom_point(data = TeoRings_Oval, aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+  
+  geom_line(data = pp, aes(x=MedRingDist, y=Popdens_TOT.p), inetype = "solid", color="red", size=1.3) +
+  #geom_text_repel(data = TeoRings_Oval, aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=4,direction="y", fontface="bold", nudge_y=2, point.size=5) +#box.padding=1, 
+  #geom_text_repel(box.padding=1,size=5,fontface="bold", nudge_y=1.5) +# 
+   geom_point(data = TeoRings_Oval, aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+  geom_errorbarh(data = TeoRings_Oval, aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=1.5, size=1) +
+  #geom_point(data = TeoRings_Oval %>% filter(Ring > 1), aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+  #geom_point(data = TeoRings_Oval %>% filter(Ring < 2), aes(x = MedRingDist, y = Popdens_TOT), size=3, color="red2", shape=4, stroke =2)+
+  annotate("label", x = 3000, y = 90, label = "atop(bold(italic(Popdens) == 199.15 * italic(e) ^ (-0.000832 * ~italic(Dist))),bold(italic(pseudo~R^2) == 0.965 ~~~~~~ italic(n) == 8 ))", parse = TRUE, color ="black", size=4)+
+  #ggtitle("Total Population Density Gradient for 500-meter Concentric Rings", subtitle= "Teotihuacan, Xolalpan-Metepec Phase (c. AD 350-600)") +
+  xlab("Distance from Center (meters)") +
+  ylab("Pop Density (per ha)") +
+  theme_bw() +
+  #scale_y_continuous(expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)) +
+  scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000)) +
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f4a
+```
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+f4b <- ggplot() +
+  geom_errorbarh(data = TeoRings_Oval, aes(x = MedRingDist, y = Avg_Area_DStr, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.0025, size=1) +
+  geom_line(data = TeoRings_Oval, aes(x=MedRingDist, y=Avg_Area_DStr), inetype = "solid", color="firebrick", size=1.3) +
+  geom_point(data = TeoRings_Oval, aes(x = MedRingDist, y = Avg_Area_DStr, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+  
+  xlab("Distance from Center (meters)") +
+  ylab("Avg Dom Struct Area (ha)") +
+  theme_bw() +
+  
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000)) +
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f4b
+```
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+f4c <- ggplot() +
+  geom_errorbarh(data = TeoRings_Oval, aes(x = MedRingDist, y = PctRow_Area_Open, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.01, size=1) +
+  geom_line(data = TeoRings_Oval, aes(x=MedRingDist, y=PctRow_Area_Open), inetype = "solid", color="orange2", size=1.3) +
+  geom_point(data = TeoRings_Oval, aes(x = MedRingDist, y = PctRow_Area_Open, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+  geom_errorbarh(data = TeoRings_Oval, aes(x = MedRingDist, y = PctRow_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.01, size=1) +
+  geom_line(data = TeoRings_Oval, aes(x=MedRingDist, y=PctRow_Area_CCFeat_AoD), inetype = "solid", color="blue", size=1.3) +
+  geom_point(data = TeoRings_Oval, aes(x = MedRingDist, y = PctRow_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+  annotate("label", x = 3000, y = 0.7, label = "% Open Area", color ="orange2", size=7)+
+  annotate("label", x = 3000, y = 0.25, label = "% CC Feature Area", color ="blue", size=7)+
+  xlab("Distance from Center (meters)") +
+  ylab("Percent Area in Ring") +#Open
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000)) +
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f4c
+```
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+f4d <- ggplot() +
+  geom_errorbarh(data = TeoRings_Oval, aes(x = MedRingDist, y = PctRow_Area_Open, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.01, size=1) +
+  geom_line(data = TeoRings_Oval, aes(x=MedRingDist, y=PctRow_Area_Open), inetype = "solid", color="yellowgreen", size=1.3) +
+  geom_point(data = TeoRings_Oval, aes(x = MedRingDist, y = PctRow_Area_Open, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+  
+  xlab("Distance from Center (meters)") +
+  ylab("Open % of Ring Area") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent, limits=c(0.3,1), breaks=seq(0.4,1,0.2)) +
+  scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000)) +
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f4d
+```
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+f4e <- ggplot() +
+  geom_errorbarh(data = TeoRings_Oval, aes(x = MedRingDist, y = PctRow_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.005, size=1) +
+  geom_line(data = TeoRings_Oval, aes(x=MedRingDist, y=PctRow_Area_CCFeat_AoD), inetype = "solid", color="blue", size=1.3) +
+  geom_point(data = TeoRings_Oval, aes(x = MedRingDist, y = PctRow_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+  
+  xlab("Distance from Center (meters)") +
+  ylab(" % Ring Area CC Feat") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent, limits=c(0,0.25), breaks=seq(0,0.25,0.05)) +
+  #scale_y_continuous(expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)) +
+  scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000)) +
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f4e
+```
+
+```{r Define simple power function, include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
+pwrfunc <- function(PctRow_Area_CCFeat_AoD, b1, b2) {
+  b1 * PctRow_Area_CCFeat_AoD^b2
+}
+```
+
+```{r include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
+#Estimate the model
+pwr_nls_fit <- nls.multstart::nls_multstart(PctRow_Area_Open ~ pwrfunc(PctRow_Area_CCFeat_AoD, b1, b2),
+                             data = TeoRings_Oval,
+                             start_lower = c(b1=-1, b2=-1),
+                             start_upper = c(b1=1, b2=1),
+                             iter = 500,
+                             supp_errors = "Y")
+
+pp2 = ModelPredFrame(pwr_nls_fit,TeoRings_Oval,"PctRow_Area_CCFeat_AoD","PctRow_Area_Open")
+
+```
+
+
+### Full Regression Results
+
+*"Robust" coef estimates estimated using covariance matrices corrected for heteroskedasticity and autocorrelation*
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+pwr_nls_fit_results = RegressionResultsTab(pwr_nls_fit, TeoRings_Oval, TeoRings_Oval$PctRow_Area_CCFeat_AoD, TeoRings_Oval$PctRow_Area_Open, model_type="nls", coef="both", residplots=TRUE, residhists=TRUE)
+
+exp_nls_fit_results[[1]]
+exp_nls_fit_results[[2]]
+exp_nls_fit_results[[3]]
+```
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+f4f <- ggplot() +
+  geom_point(data = TeoRings_Oval, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_Area_Open), size=2.5, color="black", shape=16, stroke =2)+
+  
+  geom_line(data = pp2, aes(x=PctRow_Area_CCFeat_AoD, y=PctRow_Area_Open.p), inetype = "solid", color="gold2", size=1.3) +
+  #geom_text_repel(data = TeoRings_Oval, aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=4,direction="y", fontface="bold", nudge_y=2, point.size=5) +#box.padding=1, 
+  #geom_text_repel(box.padding=1,size=5,fontface="bold", nudge_y=1.5) +# 
+
+
+  #geom_point(data = TeoRings_Oval %>% filter(Ring > 1), aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+  #geom_point(data = TeoRings_Oval %>% filter(Ring < 2), aes(x = MedRingDist, y = Popdens_TOT), size=3, color="red2", shape=4, stroke =2)+
+  annotate("label", x = 0.15, y = 0.8, label = "atop(bold(italic(PctOpen) == 0.914 * ~italic(PctCCFeat) ^ (-5.388)),bold(italic(pseudo~R^2) == 0.771 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="black", size=4)+
+  #ggtitle("Total Population Density Gradient for 500-meter Concentric Rings", subtitle= "Teotihuacan, Xolalpan-Metepec Phase (c. AD 350-600)") +
+  xlab("Percent CC Feature Area in Ring") +
+  ylab("Percent Open Area in Ring") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent, limits=c(0.3,1), breaks=seq(0.4,1,0.2)) +
+  scale_x_continuous(labels = scales::percent, limits=c(0,0.25), breaks=seq(0,0.25,0.05)) +
+  #scale_y_continuous(expand = c(0, 0), ,) +
+  #scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000)) +
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f4f
+```
+CCFeat_AoD_Area
+Area_Open
+```{r}
+
+areas = data.frame("Ring"= TeoRings_Oval$Ring, "MedRingDist"= TeoRings_Oval$MedRingDist, "DomStruct" = (TeoRings_Oval$Area_DStr+TeoRings_Oval$DomPlat_Area), "CCFeat" = TeoRings_Oval$CCFeat_O_Area, "Open" = TeoRings_Oval$Area_OpenUnoccu)
+areas = areas %>% pivot_longer(3:5, names_to = "Land_Use", values_to = "Area") %>%
+  group_by(Ring, Land_Use) %>%
+  summarise(n = sum(Area)) %>%
+  mutate(percentage = n / sum(n))
+LandUse <- factor(areas$Land_Use, levels = c('Open', 'CCFeat', 'DomStruct'))
+
+f4g <- ggplot(areas, aes(x=Ring, y=percentage, fill=LandUse)) + 
+    geom_area(alpha=0.6 , size=1, colour="black",stat="identity")+
+  scale_fill_manual(values = c("yellowgreen","blue","firebrick"))+
+xlab("Ring") +
+  ylab("Percent of Ring Area") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent, limits=c(0,1)) +#expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)
+  scale_x_continuous(expand = c(0, 0), limits=c(1,9),breaks=seq(1,9,1)) +
+  theme(legend.position = c(0.65, 0.5))+
+  theme(legend.title = element_text(size=14, face="bold"))+
+  theme(legend.text = element_text(size=12, face="bold"))+
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f4g
+```
+
+
+
+
+```{r}
+plot_grid(
+  f4a, f4b, f4c, f4e#,
+  #labels = "AUTO", ncol = 2, label_size = 30,
+  #label_x = 1, label_y = 1
+)
+```
+
+```{r}
+plot_grid(
+  f4a, f4b, 
+  labels = "AUTO", ncol = 2, label_size = 30
+  #label_x = 1, label_y = 1
+)
+```
+
+
+```{r}
+
+areas = data.frame("Ring"= TeoRings_Oval$Ring,
+                   "High" = TeoRings_Oval$Elite_DStrArea, 
+                   "IM" = TeoRings_Oval$IM_DStrArea, 
+                   "Uncertain" = TeoRings_Oval$UncerStat_Area,
+                   "Low" = TeoRings_Oval$Low_DStrArea)
+areas = areas %>% pivot_longer(2:5, names_to = "Status", values_to = "Area") %>%
+  group_by(Ring, Status) %>%
+  summarise(n = sum(Area)) %>%
+  mutate(percentage = n / sum(n))
+Class <- factor(areas$Status, levels = c('High','IM','Uncertain','Low'))
+
+f5a <- ggplot(areas, aes(x=Ring, y=percentage, fill=Class)) + 
+    geom_area(alpha=0.6 , size=1, colour="black",stat="identity")+
+  scale_fill_manual(values = c("green","yellow","orange","red"))+
+xlab("Ring") +
+  ylab("% Ring Dom Struct Area") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent, limits=c(0,1)) +#expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)
+  scale_x_continuous(expand = c(0, 0), limits=c(1,9),breaks=seq(1,9,1)) +
+  theme(legend.position = c(0.65, 0.5))+
+  theme(legend.title = element_text(size=14, face="bold"))+
+  theme(legend.text = element_text(size=12, face="bold"))+
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f5a
+```
+
+
+
+%>%
+  group_by(Ring, Status) %>%
+  summarise(n = sum(Area)) %>%
+  mutate(percentage = n / sum(n))
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+areas2 = data.frame("MedRingDist"= TeoRings_Oval$MedRingDist,
+                   "High" = TeoRings_Oval$PctCol_DStrArea_Elite, 
+                   "IM" = TeoRings_Oval$PctCol_DStrArea_IM, 
+                   #"Uncertain" = TeoRings_Oval$PctCol_DStrArea_UncerStat,
+                   "Low" = TeoRings_Oval$PctCol_Tot_LowDStrArea)
+areas2 = areas2 %>% pivot_longer(2:4, names_to = "Status2", values_to = "Percent") 
+
+Class2 <- factor(areas2$Status2, levels = c('High','IM','Low'))#'Uncertain',
+
+
+f5b <- ggplot() +
+  geom_line(data = areas2, aes(x = MedRingDist, y = Percent, color=Class2), size=1.5)+
+  scale_color_manual(name = "Class", values = c("green2","gold","red"))+#"orange2",
+  geom_point(data = areas2, aes(x = MedRingDist, y = Percent), size=1.5, color="black", shape=16, stroke =2)+
+  xlab("Distance from Center (meters)") +
+  ylab("% Class Total Dom Str Area") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
+  scale_x_continuous(expand = c(0, 0), limits=c(0,4600),breaks=seq(0,4000,1000)) +
+  theme(legend.position = c(0.75, 0.65))+
+  theme(legend.title = element_text(size=14, face="bold"))+
+  theme(legend.text = element_text(size=12, face="bold"))+
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f5b
+```
+xlab("Ring") +
+  ylab("Percent of Ring Dom Struct Area") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent, limits=c(0,1)) +#expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)
+  scale_x_continuous(expand = c(0, 0), limits=c(1,9),breaks=seq(1,9,1)) +
+  
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+f5c <- ggplot(data = TeoRings_Oval, aes(x = PctRow_Area_CCStr, y = PctRow_DStrArea_Elite)) +
+  geom_point(size=2.5, color="black", shape=16, stroke =2)+
+  geom_smooth(method = lm, se = FALSE,color="green3", size=1.3)+
+  annotate("label", x = 0.075, y = 0.44, label = "atop(bold(italic(PctHigh) == 0.39 * ~italic(PctCCFeat) + 0.0047),bold(italic(R^2) == 0.998 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="black", size=4)+
+  xlab("CC Feat % Ring Area") +
+  ylab("High Status % Ring DStr Area") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
+  scale_x_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f5c
+```
+
+
+```{r Define simple power function, include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
+explinfunc <- function(PctRow_Area_Open, b1, b2) {
+  exp((b1*PctRow_Area_Open)+b2)
+}
+```
+
+```{r include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
+#Estimate the model
+explin_nls_fit <- nls.multstart::nls_multstart(PctRow_Ring_DStrArea_Low ~ explinfunc(PctRow_Area_Open, b1, b2),
+                             data = TeoRings_Oval,
+                             start_lower = c(b1=1, b2=-15),
+                             start_upper = c(b1=10, b2=1),
+                             iter = 500,
+                             supp_errors = "Y")
+
+pp3 = ModelPredFrame(explin_nls_fit,TeoRings_Oval,"PctRow_Area_Open","PctRow_Ring_DStrArea_Low")
+
+```
+
+
+### Full Regression Results
+
+*"Robust" coef estimates estimated using covariance matrices corrected for heteroskedasticity and autocorrelation*
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+explin_nls_fit_results = RegressionResultsTab(explin_nls_fit, TeoRings_Oval, TeoRings_Oval$PctRow_Area_Open, TeoRings_Oval$PctRow_Ring_DStrArea_Low, model_type="nls", coef="both", residplots=TRUE, residhists=TRUE)
+
+explin_nls_fit_results[[1]]
+explin_nls_fit_results[[2]]
+explin_nls_fit_results[[3]]
+```
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+f5d <- ggplot() +
+  geom_point(data = TeoRings_Oval, aes(x = PctRow_Area_Open, y = PctRow_Ring_DStrArea_Low), size=2.5, color="black", shape=16, stroke =2)+
+  
+  geom_line(data = pp3, aes(x=PctRow_Area_Open, y=PctRow_Ring_DStrArea_Low.p), inetype = "solid", color="red", size=1.3) +
+  #geom_text_repel(data = TeoRings_Oval, aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=4,direction="y", fontface="bold", nudge_y=2, point.size=5) +#box.padding=1, 
+  #geom_text_repel(box.padding=1,size=5,fontface="bold", nudge_y=1.5) +# 
+
+
+  #geom_point(data = TeoRings_Oval %>% filter(Ring > 1), aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+  #geom_point(data = TeoRings_Oval %>% filter(Ring < 2), aes(x = MedRingDist, y = Popdens_TOT), size=3, color="red2", shape=4, stroke =2)+
+  annotate("label", x = 0.6, y = 0.04, label = "atop(bold(italic(PctLow) == italic(e) ^ (16.4 * ~italic(PctOpen) - 18.8)),bold(italic(pseudo~R^2) == 0.877 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="black", size=4)+
+  #ggtitle("Total Population Density Gradient for 500-meter Concentric Rings", subtitle= "Teotihuacan, Xolalpan-Metepec Phase (c. AD 350-600)") +
+  xlab("Open % Ring Area") +
+  ylab("Low Status % Ring Area") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
+  scale_x_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
+  #scale_y_continuous(expand = c(0, 0), ,) +
+  #scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000)) +
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f5d
+```
+
+
+```{r}
+plot_grid(
+  f5a, f5b, f5c, f5d#,
+  #labels = "AUTO", ncol = 2, label_size = 30
+  #label_x = 1, label_y = 1
+)
+```
+
+```{r}
+plot_grid(
+  f4a, f4b, f4e, f4g#,
+  #labels = "AUTO", ncol = 2, label_size = 30
+  #label_x = 1, label_y = 1
+)
+```
+
+
+TeoRings_Oval[-1,]
+
+ModelPredFrame
+RegressionResultsTab
+
+
+
+
+
+Combine rings 8 and 9? 
+Ring 8 is small and Ring 9 is really small
+Constitute outliers in several analyses
+
+In the standard AMM model, an increase in transport costs leads to 
+--nucleation
+--densification
+Sharper increases in 
+--prices of land/houses
+--building height
+--pop density
+Sharper decreases in
+-dwelling sizes
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

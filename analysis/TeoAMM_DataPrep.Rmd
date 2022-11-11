@@ -22,14 +22,12 @@ opts_chunk$set(tidy.opts=list(width.cutoff=75),tidy=TRUE)
 rm(list = ls())
 ```
 
-This R markdown document : 
-Topographic/environmental metrics
+This R markdown document calculates the dataset used in the analysis for the working paper draft of
 
-  1. Calculate catchment area variables, including
-      + Topographic/environmental metrics
-      + 
-  4. Reorganize the data and export for Script #6
-  
+Blumenfeld et al. (n.d.) "Urban Structure, Population Density and Inequality at Ancient Teotihuacan."
+
+In so doing, it briefly reviews both the data used to construct our dataset and the dataset itself.
+
   
 # Setup 
 
@@ -59,20 +57,20 @@ wd$funcs <- paste0(wd$dir,"functions/")
 
 ```{r, label='Load Libraries', message=FALSE,warning=FALSE}
 # Package names
-packages <- c("rgdal", "rgeos", "sp", "sf", "GISTools", "raster", 
+packs <- c("rgdal", "rgeos", "sp", "sf", "GISTools", "raster", 
               "tidyverse", "tidyr", "ggnewscale", "cowplot", "kableExtra")
               # "spatialEco","purrr","stars","data.table", "Matrix", "gdistance", "lwgeom", 
 
 # Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
+installed_packages <- packs %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
+  install.packages(packs[!installed_packages])
 }
 
 # load packages
-invisible(lapply(packages, library, character.only = TRUE))
+invisible(lapply(packs, library, character.only = TRUE))
 
-rm(packages,installed_packages)
+rm(packs,installed_packages)
 
 #Read in custom R functions located in the wd$funcs directory folder
 FUNCS <- list("HelperFunctions.R", "CalcRingData.R")
@@ -133,8 +131,7 @@ TMP_MapPoly <- invisible(readOGR(paste0(wd$data_r,"TMP_Map_Poly_Extent.gpkg")))
 
 ### Architectural Classifications
 
-
-```{r, echo=FALSE}
+```{r, echo=FALSE, out.width = '100%'}
 knitr::include_graphics(paste0(wd$figs,"LandUseClassTable.png"), FALSE)
 ```
 
@@ -286,7 +283,7 @@ TeoRings_Oval <- TeoRings_Oval[[1]]
 TeoRingsVars <- tibble(read.csv(paste0(wd$data_r,"TeoRingsVars.csv")))
 # Table of Variable Definitions for Ring Data
 TeoRingsVars %>% 
-  select(Column:Description) %>%
+  dplyr::select(Column:Description) %>%
   kable(booktabs = TRUE, align=c('c','l','l','l')) %>% 
   group_rows(index = table(TeoRingsVars$Set)) %>%
   kable_styling(bootstrap_options = c("striped", "hover"), position = "left")
