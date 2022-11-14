@@ -102,7 +102,7 @@ The primary class spatial data format used in this script is the Spatial Polygon
 We will be working in the coordinate reference system (CRS; projection) WGS84 / UTM Zone 14N (ESPG:32614) for the entirety of this analysis.
 
 
-```{r, label='Import Data', message=FALSE, warning=FALSE}
+```{r, label='Import Data', message=FALSE, warning=FALSE, results = 'hide'}
 
 #TMP Architectural interpretation points
 TeoArch_Pts <- read.csv(paste0(wd$data_r,"TeoArchDataPts.csv"))
@@ -174,16 +174,24 @@ if (length(validate1) == 0 & length(validate2) == 0){
   #TeoArch_Poly <- TeoArch_Poly[order(TeoArch_Poly$ID),]
   #TeoArch_Pts <- TeoArch_Pts[order(TeoArch_Pts$ID),]
   #identical(TeoArch_Pts$ID, TeoArch_Poly@data$ID)
+  
+  # Check for duplicate polygons and delete them
+  pts = data.frame('x'=Teo_Poly_Data@data$East_Poly, 'y' = Teo_Poly_Data@data$North_Poly)
+  Teo_Poly_Data@data$dup = duplicated(pts)
+  Teo_Poly_Data <- Teo_Poly_Data[Teo_Poly_Data$dup == F,] 
+  Teo_Poly_Data@data <- Teo_Poly_Data@data %>% dplyr::select(-dup)
 
   Teo_Poly_Data.sf <- st_as_sf(Teo_Poly_Data)
   #writeOGR(Teo_Poly_Data, paste0(wd$data_p,"TMPArchPoly_Data.gpkg"), 
   #         "TMPArchPoly_Data", driver = "GPKG", overwrite_layer = T)
   
-  rm(x,y,validate1,validate2)#TeoArch_Pts, TeoArch_Poly)
+  rm(x,y,validate1,validate2,pts)#TeoArch_Pts, TeoArch_Poly)
   
 } else {
   paste("Point data and polygon data do not match perfectly!")
 }
+
+
 
 ```
 

@@ -53,11 +53,11 @@ wd$funcs <- paste0(wd$dir,"functions/")
 
 ```{r, label='Load Libraries', message=FALSE,warning=FALSE}
 # Package names
-packages <- c("rgdal", "rgeos", "sp", "sf", "GISTools", "raster","stars",
+packages <- c("rgdal", "rgeos", "sp", "sf", "GISTools", "raster","stars", "spatstat",
               "tidyverse", "tidyr", "nls.multstart", "nlme", "brms", "broom", 
               "ggrepel", "minpack.lm", "data.table", "zoo", "lmtest", "sandwich", 
               "nlstools", "MASS", "NSM3", "gridExtra", "ggnewscale", "cowplot", 
-              "scales")
+              "scales", "viridis", "Cairo")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -81,17 +81,103 @@ rm(FUNCS)
 ## Import Data
 
 
-```{r, label='Import Data', message=FALSE, warning=FALSE}
+```{r, label='Import Data', message=FALSE, warning=FALSE, results = 'hide'}
 
 TeoRings_Circ <- read.csv(paste0(wd$data_f,"TeoRings_Circ.csv"))
-
 TeoRings_Oval <- read.csv(paste0(wd$data_f,"TeoRings_Oval.csv"))
+
+#TMP Architecture polygons
+Teo_ArchPoly_Data <- invisible(readOGR(paste0(wd$data_f,"Teo_ArchPoly_Data.gpkg")))
+
+#TMP Rings -- Orig, repositioned, rectangular
+#RingsPoly <- invisible(readOGR(paste0(wd$data_r,"RingsPoly_Circle.gpkg")))
+RingsPoly <- invisible(readOGR(paste0(wd$data_r,"RingsPoly_Oval.gpkg")))
+
+#TMP survey limit polygon
+TMP_MapPoly <- invisible(readOGR(paste0(wd$data_r,"TMP_Map_Poly_Extent.gpkg")))
+
 
 ```
 
-writeOGR(Teo_ArchPoly_Data, paste0(wd$data_f,"Teo_ArchPoly_Data.gpkg"), "Teo_ArchPoly_Data", driver = "GPKG", overwrite_layer=TRUE)
+# Weighted Kernel Density Map of Pop Density (Figure 3)
+
+```{r}
+distm <- 250
+cents = gCentroid(Teo_ArchPoly_Data, byid=T)
+Teo_ArchPts_Data = SpatialPointsDataFrame(Teo_ArchPoly_Data@data, coords=cents@coords, bbox=Teo_ArchPoly_Data@bbox, proj4string=Teo_ArchPoly_Data@proj4string)
+TeoPts_sf = st_as_sf(Teo_ArchPts_Data) %>% dplyr::select(ID,Area_ha,XM_Pop)
+
+buf = gBuffer(Teo_ArchPts_Data, byid=T, id=NULL, width=distm, quadsegs=10, capStyle="ROUND",joinStyle="ROUND", mitreLimit=1.0)
+buf_sf = st_as_sf(buf) %>% dplyr::select(ID,Area_ha,XM_Pop)
+TMP_MapPoly_sf = st_as_sf(TMP_MapPoly)
+RingsPoly_sf = st_as_sf(RingsPoly)
+
+BufInt <-st_intersection(buf_sf,TMP_MapPoly_sf)
+#plot(st_geometry(TMP_MapPoly_sf), pch = 3, col = 'red')
+#plot(st_geometry(BufInt), add = TRUE)
+BufInt$BufArea<-as.numeric(st_area(BufInt))/10000
+BufArea <- BufInt$BufArea
+rm(buf,buf_sf,BufInt)
+pts_agg <- aggregate(TeoPts_sf, TeoPts_sf, FUN = sum, na.rm=T, join = function(x, y) st_is_within_distance(x, y, dist = distm)) #calculate 3km average for all sites
+pts_agg$BufArea <- BufArea
+pts_agg$RadiusPopDens <- pts_agg$XM_Pop / pts_agg$BufArea
+pts_agg_sp = as(pts_agg,Class = "Spatial")
+
+w <- as.owin(TMP_MapPoly)
+
+Teo_ppp <- ppp(x = cents@coords[,1], y = cents@coords[,2], 
+    window = w, marks = pts_agg$RadiusPopDens)
+#plot(Teo_ppp)
 
 
+Teo_smooth = Smooth.ppp(X = Teo_ppp, sigma=distm, eps = 10, weights = Teo_ppp$marks, scalekernel=TRUE)
+plot(Teo_smooth)
+
+Teo_PopDens = raster(Teo_smooth)
+Teo_PopDens = st_as_stars(Teo_PopDens)
+
+Teo_ArchPoly_Data
+Low_sf = st_as_sf(Teo_ArchPts_Data) %>% filter(XM_f == "Low")
+IM_sf = st_as_sf(Teo_ArchPts_Data) %>% filter(XM_f == "IM")
+UncertStat_sf = st_as_sf(Teo_ArchPts_Data) %>% filter(XM_f == "UncertStat")
+High_sf = st_as_sf(Teo_ArchPts_Data) %>% filter(XM_f == "High")
+CCFeatPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "CCFeat")
+AoDPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "AoD")
+PlazaPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "Plaza")
+
+  my_breaks <- c(0, 55, 110, floor(max(Teo_smooth$v, na.rm=T)))
+  my_labs <- sapply(my_breaks, paste, "/ha", sep="")
+  my_breaks[1] <- 1
+#plasma inferno cividis viridis     begin = 0.15, 
+plt = ggplot() +geom_stars(data = Teo_PopDens)+
+  scale_fill_viridis_c(option = "rocket", na.value = NA, 
+                       name = paste0(distm,"m Kernel    \nPop Density    "),
+                       breaks = my_breaks, labels = my_labs) +
+  geom_sf(data = CCFeatPoly_sf, fill=NA, color = "cyan", size=0.3, alpha=0.2) +
+  geom_sf(data = AoDPoly_sf, fill=NA, color = "cyan", size=0.3, alpha=0.2) +
+  geom_sf(data = PlazaPoly_sf, fill=NA, color = "cyan", size=0.3, alpha=0.2) +
+  #geom_sf(data = Low_sf, color="red", size=0.75) +
+  #geom_sf(data = UncertStat_sf, color="magenta", size=0.75) +
+  #geom_sf(data = IM_sf, color="yellow", size=0.75) +
+  #geom_sf(data = High_sf, color="green", size=0.75) +
+  geom_sf(data = RingsPoly_sf, fill=NA, color="white", size=1) +
+  geom_sf(data = TMP_MapPoly_sf, fill=NA, color="black", size=1.5) +
+  coord_sf(datum = sf::st_crs(32614))+
+  theme_void() +
+  theme(legend.position = "bottom", legend.key.width = unit(2.5, "cm"))+
+  theme(legend.title = element_text(size=14, face="bold"))+
+  theme(legend.text = element_text(size=12, face="bold"))
+plt
+ggsave("Fig3_PopDens.png", plot = plt, device = "png", path = wd$figs, scale = 1, width = 7, height = 5,   units = "in",  dpi = 1000, bg = "white")
+
+rm(w,UncertStat_sf,TMP_MapPoly,TMP_MapPoly_sf,TeoPts_sf,Teo_smooth,Teo_ppp,Teo_PopDens,Teo_ArchPts_Data,Teo_ArchPoly_Data,RingsPoly_sf,RingsPoly,pts_agg_sp,pts_agg,PlazaPoly_sf,Low_sf,IM_sf,High_sf,cents,CCFeatPoly_sf,AoDPoly_sf,plt,my_breaks,my_labs,distm,BufArea)
+```
+
+pts = data.frame('x'=Teo_ArchPoly_Data@data$East_Poly, 'y' = Teo_ArchPoly_Data@data$North_Poly)
+d = duplicated(pts)
+z = Teo_ArchPoly_Data@data[,1:8]
+pts$dup <- d
+pts = cbind(pts,z)
 
 
 # Population Density Falloff Curve
