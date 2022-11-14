@@ -136,7 +136,6 @@ plot(Teo_smooth)
 Teo_PopDens = raster(Teo_smooth)
 Teo_PopDens = st_as_stars(Teo_PopDens)
 
-Teo_ArchPoly_Data
 Low_sf = st_as_sf(Teo_ArchPts_Data) %>% filter(XM_f == "Low")
 IM_sf = st_as_sf(Teo_ArchPts_Data) %>% filter(XM_f == "IM")
 UncertStat_sf = st_as_sf(Teo_ArchPts_Data) %>% filter(XM_f == "UncertStat")
@@ -151,7 +150,7 @@ PlazaPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "Plaza")
 #plasma inferno cividis viridis     begin = 0.15, 
 plt = ggplot() +geom_stars(data = Teo_PopDens)+
   scale_fill_viridis_c(option = "rocket", na.value = NA, 
-                       name = paste0(distm,"m Kernel    \nPop Density    "),
+                       name = paste0(distm,"m Smoothed    \nPop Density    "),
                        breaks = my_breaks, labels = my_labs) +
   geom_sf(data = CCFeatPoly_sf, fill=NA, color = "cyan", size=0.3, alpha=0.2) +
   geom_sf(data = AoDPoly_sf, fill=NA, color = "cyan", size=0.3, alpha=0.2) +
@@ -164,11 +163,11 @@ plt = ggplot() +geom_stars(data = Teo_PopDens)+
   geom_sf(data = TMP_MapPoly_sf, fill=NA, color="black", size=1.5) +
   coord_sf(datum = sf::st_crs(32614))+
   theme_void() +
-  theme(legend.position = "bottom", legend.key.width = unit(2.5, "cm"))+
+  theme(legend.position = c(0,0.5), legend.key.width = unit(1, "cm"), legend.key.height = unit(1.6, "cm"))+
   theme(legend.title = element_text(size=14, face="bold"))+
   theme(legend.text = element_text(size=12, face="bold"))
 plt
-ggsave("Fig3_PopDens.png", plot = plt, device = "png", path = wd$figs, scale = 1, width = 7, height = 5,   units = "in",  dpi = 1000, bg = "white")
+ggsave("Fig3_PopDens.png", plot = plt, device = "png", path = wd$figs, scale = 1, width = 8, height = 5,   units = "in",  dpi = 1000, bg = "white")
 
 rm(w,UncertStat_sf,TMP_MapPoly,TMP_MapPoly_sf,TeoPts_sf,Teo_smooth,Teo_ppp,Teo_PopDens,Teo_ArchPts_Data,Teo_ArchPoly_Data,RingsPoly_sf,RingsPoly,pts_agg_sp,pts_agg,PlazaPoly_sf,Low_sf,IM_sf,High_sf,cents,CCFeatPoly_sf,AoDPoly_sf,plt,my_breaks,my_labs,distm,BufArea)
 ```
@@ -277,7 +276,7 @@ f4b
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 
-f4c <- ggplot() +
+f4d <- ggplot() +
   geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.005, size=1) +
   geom_line(data = TeoRings, aes(x=MedRingDist, y=PctRow_Area_CCFeat_AoD), inetype = "solid", color="blue", size=1.6) +
   geom_point(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
@@ -294,7 +293,7 @@ f4c <- ggplot() +
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
-f4c
+f4d
 ```
 
 
@@ -308,21 +307,22 @@ areas = areas %>% pivot_longer(3:5, names_to = "Land_Use", values_to = "Area") %
   mutate(percentage = n / sum(n))
 LandUse <- factor(areas$Land_Use, levels = c('Open', 'CCFeat', 'DomStruct'))
 
-f4d <- ggplot(areas, aes(x=Ring, y=percentage, fill=LandUse)) + 
+f4c <- ggplot(areas, aes(x=Ring, y=percentage, fill=LandUse)) + 
     geom_area(alpha=0.6 , size=1, colour="black",stat="identity")+
-  scale_fill_manual(name="Land Use", values = c("yellowgreen","blue","firebrick"))+
+  scale_fill_manual(name="Land Use Classes", values = c("yellowgreen","blue","firebrick"),
+                    labels=c("Open/Unoccupied", "CC Features", "Domestic Structures"))+
 xlab("Concentric Ring") +
   ylab("% Ring Area") +
   theme_bw() +
   scale_y_continuous(labels = scales::percent, limits=c(0,1)) +#expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)
   scale_x_continuous(expand = c(0, 0), limits=c(1,9),breaks=seq(1,9,1)) +
-  theme(legend.position = c(0.75, 0.65))+
+  theme(legend.position = c(0.65, 0.65))+
   theme(legend.title = element_text(size=14, face="bold"))+
   theme(legend.text = element_text(size=12, face="bold"))+
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
-f4d
+f4c
 ```
 
 ```{r}
@@ -359,7 +359,7 @@ f5a <- ggplot(areas, aes(x=Ring, y=percentage, fill=Class)) +
     geom_area(alpha=0.6 , size=1, colour="black",stat="identity")+
   scale_fill_manual(name="Class Status",values = c("green","yellow","orange","red"))+
 xlab("Concentric Ring") +
-  ylab("DStr % Ring Area") +
+  ylab("% Ring DStr Area") +
   theme_bw() +
   scale_y_continuous(labels = scales::percent, limits=c(0,1)) +#expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)
   scale_x_continuous(expand = c(0, 0), limits=c(1,9),breaks=seq(1,9,1)) +
