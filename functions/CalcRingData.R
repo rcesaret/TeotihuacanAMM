@@ -24,6 +24,7 @@ rm(pak,ip)
 
 CalcRingData = function(PolyData, # = Teo_Poly_Data
                         RingsPoly, # = RingsPoly_Oval
+                        OpenArea,
                         #dist_lim, 
                         RingVersion = c("Ring_Oval","Ring_Circle"), 
                         output_arch_data = F,
@@ -176,7 +177,7 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
   
   
   ## Construct Ring Dataset
-  
+  OpenArea
   
   Ring <- RingsPoly@data$Ring   
   MinRingDist <- RingsPoly@data$Dist - 500
@@ -207,8 +208,16 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
            Popdens_NonCCZone_AoD = Pop_TOT / Area_NonCCZone_AoD,
            Area_NonCCZone_O = Ring_Area - CCFeat_O_Area,
            Popdens_NonCCZone_O = Pop_TOT / Area_NonCCZone_O,
-           Area_Open = Ring_Area - (NonCC_Feat_Area + CCFeat_O_Area),
-           Area_OpenUnoccu = Ring_Area - ((NonCC_Feat_Area - Unoccu_Area) + CCFeat_O_Area),
+           
+           Area_Open = OpenArea$TotalOpen,
+           Area_OpenUnoccu = Area_Open + Unoccu_Area,
+           Area_RuralOpen = OpenArea$RuralOpenArea,
+           Area_UrbanOpen = OpenArea$UrbanOpenArea,
+           Area_ArchFeat = OpenArea$StructureArea,
+           Popdens_ArchFeat = Pop_TOT / Area_ArchFeat,
+           Area_BuiltUp = OpenArea$BuiltUpArea,
+           Popdens_BuiltUp = Pop_TOT / Area_BuiltUp,
+
            PctRow_Area_DStr = Area_DStr / Ring_Area,
            PctRow_Area_NonDStr = (Ring_Area - Area_DStr) / Ring_Area,
            PctRow_Area_CCFeat_AoD = CCFeat_AoD_Area / Ring_Area,
@@ -216,6 +225,12 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
            PctRow_Area_CCStr = CCStrArea / Ring_Area,
            PctRow_Area_Open = Area_Open / Ring_Area,
            PctRow_Area_OpenUnoccu = Area_OpenUnoccu / Ring_Area,
+           
+           PctRow_Area_RuralOpen = Area_RuralOpen / Ring_Area,
+           PctRow_Area_UrbanOpen = Area_UrbanOpen / Ring_Area,
+           PctRow_Area_ArchFeat = Area_ArchFeat / Ring_Area,
+           PctRow_Area_BuiltUp = Area_BuiltUp / Ring_Area,
+           
            PctRow_Area_NonCCZone = Area_NonCCZone / Ring_Area,
            PctRow_Area_NonCCZone_AoD = Area_NonCCZone_AoD / Ring_Area,
            PctRow_Area_NonCCZone_O = Area_NonCCZone_O / Ring_Area,
@@ -227,13 +242,17 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
            PctRow_Area_DomPlat = DomPlat_Area / Ring_Area,
            PctCol_Area_DStr = Area_DStr / sum(Area_DStr),
            PctCol_Area_NonDStr = Area_NonDStr / sum(Area_NonDStr),
-           
            PctCol_Area_CCFeat_AoD = CCFeat_AoD_Area / sum(CCFeat_AoD_Area),
            PctCol_Area_CCFeat_O = CCFeat_O_Area / sum(CCFeat_O_Area),
-           
            PctCol_Area_CCStr = CCStrArea / sum(CCStrArea),
            PctCol_Area_Open = Area_Open / sum(Area_Open),
            PctCol_Area_OpenFields = Area_OpenUnoccu / sum(Area_OpenUnoccu),
+           
+           PctCol_Area_RuralOpen = Area_RuralOpen / sum(Area_RuralOpen),
+           PctCol_Area_UrbanOpen = Area_UrbanOpen / sum(Area_UrbanOpen),
+           PctCol_Area_ArchFeat = Area_ArchFeat / sum(Area_ArchFeat),
+           PctCol_Area_BuiltUp = Area_BuiltUp / sum(Area_BuiltUp),
+           
            PctCol_Area_NonCCZone = Area_NonCCZone / sum(Area_NonCCZone),
            PctCol_Area_NonCCZone_AoD = Area_NonCCZone_AoD / sum(Area_NonCCZone_AoD),
            PctCol_Area_NonCCZone_O = Area_NonCCZone_O / sum(Area_NonCCZone_O),

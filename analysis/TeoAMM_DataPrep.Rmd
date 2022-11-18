@@ -127,6 +127,9 @@ RingsPoly_Oval <- invisible(readOGR(paste0(wd$data_r,"RingsPoly_Oval.gpkg")))
 #TMP survey limit polygon
 TMP_MapPoly <- invisible(readOGR(paste0(wd$data_r,"TMP_Map_Poly_Extent.gpkg")))
 
+UrbanOpenPoly <- invisible(readOGR(paste0(wd$data_r,"UrbanOpenPoly.gpkg")))
+RuralOpenPoly <- invisible(readOGR(paste0(wd$data_r,"RuralOpenPoly.gpkg")))
+
 ```
 
 
@@ -207,14 +210,50 @@ if (length(validate1) == 0 & length(validate2) == 0){
 
 # Classification of Open Space
 
+Calculated in QGIS
 
---cut open space into polys by ring, given 
+Urban Open Area = 200m buffer around architecture; then -150m buffer; this was done to make it more contiguous, smooth edges and remove smaller holes within urban open space area; thus a 50m buffer around contiguous settled area; 
+Rural Open Area = All areas not in Urban open space
+Built-Up Area = Architectural Features + Urban Open Area
 
-THIS GOES AFTER DATA INTEGRATION
---Integrate again --> another file that contains the open space classes
+
+
+```{r, 'comparrison maps of ring variants', echo=FALSE, message=FALSE, warning=FALSE}
+
+UrbanOpenPoly.sf <- st_as_sf(UrbanOpenPoly)
+RuralOpenPoly.sf <- st_as_sf(RuralOpenPoly)
+TMP_MapPoly.sf <- st_as_sf(TMP_MapPoly)
+
+ggplot() + 
+  geom_sf(data = Teo_Poly_Data.sf, aes(geometry = geometry),color="blue", size=1, fill="blue") +
+  geom_sf(data = UrbanOpenPoly.sf, aes(geometry = geometry), fill="red", color="red",size=0) +
+  geom_sf(data = RuralOpenPoly.sf, aes(geometry = geometry), fill="green3", color= "green3", size=0) +
+  geom_sf(data = TMP_MapPoly.sf, aes(geometry = geometry), color="black", size=1.1, alpha = 0) +
+  labs(title= "Urban vs Rural Open Space",subtitle="Rural = Green; Urban = Red; Blue = Architectural Features")+
+  coord_sf()+
+  theme_void()+
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=16),
+        plot.subtitle = element_text(hjust = 0.5, face="bold", size=12),
+        plot.background = element_rect(fill = "white", colour = NA))
+
+#compare_rings <- plot_grid(p_circ, p_oval)
+#compare_rings
+rm(RuralOpenPoly.sf,UrbanOpenPoly.sf,TMP_MapPoly.sf)
+```
 
 
 ```{r label='', message=FALSE,warning=FALSE}
+
+names(RuralOpenPoly@data)[names(RuralOpenPoly@data) == 'Area_ha'] <- 'RuralOpenArea'
+names(UrbanOpenPoly@data)[names(UrbanOpenPoly@data) == 'Area_ha'] <- 'UrbanOpenArea'
+
+Open <- merge(RuralOpenPoly@data, UrbanOpenPoly@data, by = 'Ring', all=TRUE)
+Open[is.na(Open)] <- 0
+Open <- Open %>% select(-ID,-ID_2, -Dist.x, -Dist.y) %>% mutate(
+  TotalOpen = RuralOpenArea + UrbanOpenArea,
+  BuiltUpArea = RingsPoly_Oval@data$Area_ha - RuralOpenArea,
+  StructureArea = RingsPoly_Oval@data$Area_ha - TotalOpen)
+
 
 ```
 
@@ -269,16 +308,17 @@ Using Function
 
 ## Calculate Circular Rings Data
 
-TeoRings_Circ <- CalcRingData(PolyData = Teo_Poly_Data,
-                              RingsPoly = RingsPoly_Circle,
-                              RingVersion = "Ring_Circle",
-                              output_arch_data = F,
-                              output_ring_data = T)
+#TeoRings_Circ <- CalcRingData(PolyData = Teo_Poly_Data,
+#                              RingsPoly = RingsPoly_Circle,
+#                              RingVersion = "Ring_Circle",
+#                              output_arch_data = F,
+#                              output_ring_data = T)
 
 ## Calculate Oval Rings Data
 
 TeoRings_Oval <- CalcRingData(PolyData = Teo_Poly_Data,
                               RingsPoly = RingsPoly_Oval,
+                              OpenArea = Open,
                               RingVersion = "Ring_Oval",
                               output_arch_data = T,
                               output_ring_data = T)
@@ -312,7 +352,7 @@ TeoRingsVars %>%
 
 ```{r}
 
-write.csv(TeoRings_Circ, paste0(wd$data_f,"TeoRings_Circ.csv"))
+#write.csv(TeoRings_Circ, paste0(wd$data_f,"TeoRings_Circ.csv"))
 
 write.csv(TeoRings_Oval, paste0(wd$data_f,"TeoRings_Oval.csv"))
 
