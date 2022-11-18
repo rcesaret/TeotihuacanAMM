@@ -80,7 +80,14 @@ rm(FUNCS)
 ```
 
 
+TeoArch_Pts2 <- TeoArch_Pts %>% mutate(
+  XM_PersonsPerDwellingUnit = ifelse(XM_f == "IM" | XM_f == "UncertStat", 7.4, 
+                            ifelse(XM_f == "High", 9.7, ifelse(XM_f == "Low", 5.5,0))),
+  XM_DwellingUnits = ifelse(XM_f == "IM" | XM_f == "UncertStat", Area_m2 / 324.3, 
+                            ifelse(XM_f == "High", Area_m2 / 1378.6, ifelse(XM_f == "Low", 1,0))),
+  XM_Pop = XM_PersonsPerDwellingUnit * XM_DwellingUnits)
 
+write.csv(TeoArch_Pts2, paste0(wd$data_r,"TeoArchDataPts.csv"))
 
 
 ## Import Data
