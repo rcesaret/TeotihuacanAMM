@@ -96,6 +96,8 @@ RingsPoly <- invisible(readOGR(paste0(wd$data_r,"RingsPoly_Oval.gpkg")))
 #TMP survey limit polygon
 TMP_MapPoly <- invisible(readOGR(paste0(wd$data_r,"TMP_Map_Poly_Extent.gpkg")))
 
+#UrbanOpenPoly <- invisible(readOGR(paste0(wd$data_r,"UrbanOpenPoly.gpkg")))
+RuralOpenPoly <- invisible(readOGR(paste0(wd$data_r,"RuralOpenPoly.gpkg")))
 
 ```
 
@@ -136,6 +138,7 @@ plot(Teo_smooth)
 Teo_PopDens = raster(Teo_smooth)
 Teo_PopDens = st_as_stars(Teo_PopDens)
 
+RuralOpenPoly_sf = st_as_sf(RuralOpenPoly)
 Low_sf = st_as_sf(Teo_ArchPts_Data) %>% filter(XM_f == "Low")
 IM_sf = st_as_sf(Teo_ArchPts_Data) %>% filter(XM_f == "IM")
 UncertStat_sf = st_as_sf(Teo_ArchPts_Data) %>% filter(XM_f == "UncertStat")
@@ -144,7 +147,7 @@ CCFeatPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "CCFeat")
 AoDPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "AoD")
 PlazaPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "Plaza")
 
-  my_breaks <- c(0, 40, 80, floor(max(Teo_smooth$v, na.rm=T)))
+  my_breaks <- c(0, 43, 85, floor(max(Teo_smooth$v, na.rm=T)))
   my_labs <- sapply(my_breaks, paste, "/ha", sep="")
   my_breaks[1] <- 1
 #plasma inferno cividis viridis     begin = 0.15, 
@@ -152,6 +155,7 @@ plt = ggplot() +geom_stars(data = Teo_PopDens)+
   scale_fill_viridis_c(option = "rocket", na.value = NA, 
                        name = paste0(distm,"m Smoothed    \nPop Density    "),
                        breaks = my_breaks, labels = my_labs) +
+  geom_sf(data = RuralOpenPoly_sf, fill="yellowgreen", color = NA, size=0, alpha=0.75) +
   geom_sf(data = CCFeatPoly_sf, fill=NA, color = "cyan", size=0.3, alpha=0.2) +
   geom_sf(data = AoDPoly_sf, fill=NA, color = "cyan", size=0.3, alpha=0.2) +
   geom_sf(data = PlazaPoly_sf, fill=NA, color = "cyan", size=0.3, alpha=0.2) +
@@ -169,7 +173,7 @@ plt = ggplot() +geom_stars(data = Teo_PopDens)+
 plt
 ggsave("Fig3_PopDens.png", plot = plt, device = "png", path = wd$figs, scale = 1, width = 8, height = 5,   units = "in",  dpi = 1000, bg = "white")
 
-rm(w,UncertStat_sf,TMP_MapPoly,TMP_MapPoly_sf,TeoPts_sf,Teo_smooth,Teo_ppp,Teo_PopDens,Teo_ArchPts_Data,Teo_ArchPoly_Data,RingsPoly_sf,RingsPoly,pts_agg_sp,pts_agg,PlazaPoly_sf,Low_sf,IM_sf,High_sf,cents,CCFeatPoly_sf,AoDPoly_sf,plt,my_breaks,my_labs,distm,BufArea)
+rm(w,UncertStat_sf,TMP_MapPoly,TMP_MapPoly_sf,TeoPts_sf,Teo_smooth,Teo_ppp,Teo_PopDens,Teo_ArchPts_Data,Teo_ArchPoly_Data,RingsPoly_sf,RingsPoly,pts_agg_sp,pts_agg,PlazaPoly_sf,Low_sf,IM_sf,High_sf,cents,CCFeatPoly_sf,AoDPoly_sf,plt,my_breaks,my_labs,distm,BufArea,RuralOpenPoly_sf)
 ```
 
 
@@ -195,14 +199,14 @@ expfunc <- function(MedRingDist, b1, b2) {
 
 ```{r include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
 #Estimate the model
-exp_nls_fit <- nls.multstart::nls_multstart(Popdens_TOT ~ expfunc(MedRingDist, b1, b2),
+exp_nls_fit <- nls.multstart::nls_multstart(Popdens_BuiltUp ~ expfunc(MedRingDist, b1, b2),
                              data = TeoRings[-1,],
                              start_lower = c(b1=50, b2=-1e-2),
                              start_upper = c(b1=350, b2=-1e-4),
                              iter = 500,
                              supp_errors = "Y")
 
-pp = ModelPredFrame(exp_nls_fit,TeoRings[-1,],"MedRingDist","Popdens_TOT")
+pp = ModelPredFrame(exp_nls_fit,TeoRings[-1,],"MedRingDist","Popdens_BuiltUp")
 
 ```
 
@@ -213,7 +217,7 @@ pp = ModelPredFrame(exp_nls_fit,TeoRings[-1,],"MedRingDist","Popdens_TOT")
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 
-exp_nls_fit_results = RegressionResultsTab(exp_nls_fit, TeoRings[-1,], TeoRings[-1,]$MedRingDist, TeoRings[-1,]$Popdens_TOT, model_type="nls", coef="both", residplots=TRUE, residhists=TRUE)
+exp_nls_fit_results = RegressionResultsTab(exp_nls_fit, TeoRings[-1,], TeoRings[-1,]$MedRingDist, TeoRings[-1,]$Popdens_BuiltUp, model_type="nls", coef="both", residplots=TRUE, residhists=TRUE)
 
 exp_nls_fit_results[[1]]
 exp_nls_fit_results[[2]]
@@ -226,16 +230,16 @@ exp_nls_fit_results[[3]]
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 
 f4a <- ggplot() +
-  geom_point(data = TeoRings, aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+  geom_point(data = TeoRings, aes(x = MedRingDist, y = Popdens_BuiltUp, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
   
-  geom_line(data = pp, aes(x=MedRingDist, y=Popdens_TOT.p), inetype = "solid", color="red", size=1.3) +
+  geom_line(data = pp, aes(x=MedRingDist, y=Popdens_BuiltUp.p), inetype = "solid", color="red", size=1.3) +
   #geom_text_repel(data = TeoRings, aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=4,direction="y", fontface="bold", nudge_y=2, point.size=5) +#box.padding=1, 
   #geom_text_repel(box.padding=1,size=5,fontface="bold", nudge_y=1.5) +# 
-   geom_point(data = TeoRings, aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
-  geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=1.5, size=1) +
+   geom_point(data = TeoRings, aes(x = MedRingDist, y = Popdens_BuiltUp, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+  geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = Popdens_BuiltUp, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=1.5, size=1) +
   #geom_point(data = TeoRings %>% filter(Ring > 1), aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
   #geom_point(data = TeoRings %>% filter(Ring < 2), aes(x = MedRingDist, y = Popdens_TOT), size=3, color="red2", shape=4, stroke =2)+
-  annotate("label", x = 3000, y = 70, label = "atop(bold(italic(PopDens) == 154.4 * italic(e) ^ (-0.00083 * ~italic(Dist))),bold(italic(pseudo~R^2) == 0.967 ~~~~~~ italic(n) == 8 ))", parse = TRUE, color ="black", size=4)+
+  annotate("label", x = 3000, y = 70, label = "atop(bold(italic(PopDens) == 131.8 * italic(e) ^ (-0.00064 * ~italic(Dist))),bold(italic(pseudo~R^2) == 0.978 ~~~~~~ italic(n) == 8 ))", parse = TRUE, color ="black", size=4)+
   #ggtitle("Total Population Density Gradient for 500-meter Concentric Rings", subtitle= "Teotihuacan, Xolalpan-Metepec Phase (c. AD 350-600)") +
   xlab("Distance from Center (km)") +
   ylab("Pop Density (per ha)") +
@@ -289,7 +293,7 @@ f4d <- ggplot() +
   xlab("Distance from Center (km)") +
   ylab("% CC Features") +
   theme_bw() +
-  #scale_y_continuous(labels = scales::percent, limits=c(0,0.25), breaks=seq(0,0.25,0.05)) +
+  scale_y_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
   #scale_y_continuous(expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)) +
   scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000),
                      labels=function(x)x/1000) +
@@ -319,7 +323,7 @@ f4c <- ggplot(areas, aes(x=Ring, y=percentage, fill=LandUse)) +
 xlab("Concentric Ring") +
   ylab("% Ring Area") +
   theme_bw() +
-  scale_y_continuous(labels = scales::percent, limits=c(0,1)) +#expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)
+  scale_y_continuous(labels = scales::percent) +#, limits=c(0,1)expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)
   scale_x_continuous(expand = c(0, 0), limits=c(1,9),breaks=seq(1,9,1)) +
   theme(legend.position = c(0.65, 0.65))+
   theme(legend.title = element_text(size=14, face="bold"))+
@@ -329,6 +333,39 @@ xlab("Concentric Ring") +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
 f4c
 ```
+
+```{r}
+
+areas = data.frame("Ring"= TeoRings$Ring, "MedRingDist"= TeoRings$MedRingDist, "DomStruct" = (TeoRings$Area_DStr+TeoRings$DomPlat_Area), "CCFeat" = TeoRings$CCFeat_O_Area, "UrbanOpen" = (TeoRings$Area_UrbanOpen + TeoRings$UnOccuFeat_Area), "RuralOpen" = TeoRings$Area_RuralOpen)
+areas = areas %>% pivot_longer(3:6, names_to = "Land_Use", values_to = "Area") %>%
+  group_by(Ring, Land_Use) %>%
+  summarise(n = sum(Area)) %>%
+  mutate(percentage = n / sum(n))
+LandUse <- factor(areas$Land_Use, levels = c("RuralOpen", "UrbanOpen", 'CCFeat', 'DomStruct'))
+
+f4c <- ggplot(areas, aes(x=Ring, y=percentage, fill=LandUse)) + 
+    geom_area(alpha=0.6 , size=1, colour="black",stat="identity")+
+  scale_fill_manual(name="Land Use Classes", values = c("yellowgreen","tan","blue","firebrick"),
+                    labels=c("Rural Open", "Urban Open", "CC Features", "Domestic Structures"))+
+xlab("Concentric Ring") +
+  ylab("% Ring Area") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent) +#, limits=c(0,1)expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)
+  scale_x_continuous(expand = c(0, 0), limits=c(1,9),breaks=seq(1,9,1)) +
+  theme(legend.position = c(0.775, 0.75))+
+  theme(legend.title = element_text(size=12, face="bold"))+
+  theme(legend.text = element_text(size=10, face="bold"))+
+  theme(legend.background = element_rect(color=alpha('white', 0.5), fill=alpha('white', 0.5)))+
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f4c
+```
+
+
+
+
+
 
 ```{r}
 Fig4 <- plot_grid(f4a, f4b, f4c, f4d, labels = "AUTO", label_size = 30, hjust=0)
@@ -378,35 +415,7 @@ f5a
 ```
 
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
-areas2 = data.frame("MedRingDist"= TeoRings$MedRingDist,
-                   "High" = TeoRings$PctCol_DStrArea_Elite, 
-                   "Intermediate" = TeoRings$PctCol_DStrArea_IM, 
-                   #"Uncertain" = TeoRings$PctCol_DStrArea_UncerStat,
-                   "Low" = TeoRings$PctCol_Tot_LowDStrArea)
-areas2 = areas2 %>% pivot_longer(2:4, names_to = "Status2", values_to = "Percent") 
 
-Class2 <- factor(areas2$Status2, levels = c('High','Intermediate','Low'))#'Uncertain',
-
-
-f5b <- ggplot() +
-  geom_line(data = areas2, aes(x = MedRingDist, y = Percent, color=Class2), size=1.5)+
-  scale_color_manual(name = "Class Status", values = c("green2","gold","red"))+#"orange2",
-  geom_point(data = areas2, aes(x = MedRingDist, y = Percent), size=1.5, color="black", shape=16, stroke =2)+
-  xlab("Distance from Center (km)") +
-  ylab("% of Total DStr Area") +
-  theme_bw() +
-  scale_y_continuous(labels = scales::percent) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
-  scale_x_continuous(expand = c(0, 0), limits=c(0,4600),breaks=seq(0,4000,1000),
-                     labels=function(x)x/1000) +
-  theme(legend.position = c(0.75, 0.65))+
-  theme(legend.title = element_text(size=14, face="bold"))+
-  theme(legend.text = element_text(size=12, face="bold"))+
-  theme(axis.text = element_text(size = 12, color="black")) +
-  theme(axis.title.y = element_text(size = 14, face = "bold")) +
-  theme(axis.title.x = element_text(size = 14, face = "bold"))
-f5b
-```
 xlab("Ring") +
   ylab("Percent of Ring Dom Struct Area") +
   theme_bw() +
@@ -419,12 +428,41 @@ xlab("Ring") +
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 
-f5c <- ggplot(data = TeoRings, aes(x = PctRow_Area_CCStr, y = PctRow_DStrArea_Elite)) +
+f5b <- ggplot(data = TeoRings, aes(x = PctRow_Area_CCStr, y = PctRow_DStrArea_Elite)) +
   geom_point(size=2.5, color="black", shape=16, stroke =2)+
   geom_smooth(method = lm, se = FALSE,color="green3", size=1.3)+
-  annotate("label", x = 0.075, y = 0.44, label = "atop(bold(italic(PctHigh) == 0.39 * ~italic(PctCCFeat) + 0.005),bold(italic(R^2) == 0.998 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="black", size=4)+
+  annotate("label", x = 0.065, y = 0.4, label = "atop(bold(italic(PctHigh) == 0.39 * ~italic(PctCCFeat) + 0.005),bold(italic(R^2) == 0.998 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="green4", size=4)+
+  annotate("label", x = 0.065, y = 0.46, label = "High Status", color ="green3", size=5)+
   xlab("CC Feat % Ring Area") +
-  ylab("High Status % Ring DStr Area   ") +
+  ylab("% Ring DStr Area") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
+  scale_x_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f5b
+```
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+TeoRings$PctRow_DStrArea_IMUncerStat = TeoRings$PctRow_DStrArea_UncerStat + TeoRings$PctRow_DStrArea_IM
+
+
+f5c <- ggplot() +
+  geom_point(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_DStrArea_IMUncerStat), size=2.5, color="orange4", shape=16, stroke =2)+
+  geom_smooth(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_DStrArea_IMUncerStat), method = lm, se = FALSE,color="darkorange", size=1.3)+
+  annotate("label", x = 0.155, y = 0.915, label = "atop(bold(italic(PctIMU) == -1.95 * ~italic(PctCCFeat) + 0.98),bold(italic(R^2) == 0.98 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="orange4", size=4)+
+  annotate("label", x = 0.155, y = 0.975, label = "Intermediate + Uncertain Status", color ="darkorange", size=5)+
+  
+  geom_point(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_DStrArea_IM), size=2.5, color="gold2", shape=16, stroke =2)+
+  geom_smooth(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_DStrArea_IM), method = lm, se = FALSE,color="yellow3", size=1.3)+
+  annotate("label", x = 0.08, y = 0.55, label = "atop(bold(italic(PctIM) == -1.55 * ~italic(PctCCFeat) + 0.88),bold(italic(R^2) == 0.938 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="yellow4", size=4)+
+  annotate("label", x = 0.08, y = 0.615, label = "Intermediate Status", color ="yellow3", size=5)+
+  
+  xlab("CC Feat % Ring Area") +
+  ylab("% Ring DStr Area") +
   theme_bw() +
   scale_y_continuous(labels = scales::percent) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
   scale_x_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
@@ -435,6 +473,64 @@ f5c <- ggplot(data = TeoRings, aes(x = PctRow_Area_CCStr, y = PctRow_DStrArea_El
   theme(axis.title.x = element_text(size = 14, face = "bold"))
 f5c
 ```
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+f5d <- ggplot(data = TeoRings, aes(x = PctRow_Area_RuralOpen, y = PctRow_Ring_DStr_Low)) +
+  geom_point(size=2.5, color="black", shape=16, stroke =2)+
+  geom_smooth(method = lm, se = FALSE,color="red", size=1.3)+
+  annotate("label", x = 0.225, y = 0.605, label = "atop(bold(italic(PctLow) == 0.85 * ~italic(PctCCFeat) + 0.109),bold(italic(R^2) == 0.919 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="red3", size=4)+
+  annotate("label", x = 0.225, y = 0.695, label = "Low Status", color ="red", size=5)+
+  xlab("Rural Open % Ring Area") +
+  ylab("% Ring DStr") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
+  scale_x_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f5d
+```
+
+
+```{r}
+Fig5 <- plot_grid(f5a, f5b, f5c, f5d, labels = "AUTO", label_size = 30, hjust=0)
+
+
+Fig5
+
+
+ggsave("Fig5.png", plot = Fig5, device = "png", path = wd$figs, scale = 1, width = 10, height = 8,   units = "in",  dpi = 1000, bg = "white")
+
+
+
+
+
+
+rm(f5a, f5b, f5c, f5d, Fig5)
+```
+
+
+
+
+
+
+scales::rescale(c(142.1237,43.82432,9.37519568567026),c(1,2))
+
+
+
+# Figure 6
+
+
+
+
+
+st_as_sf
+
+# SM Figs
+
 
 
 ```{r Define simple power function, include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
@@ -492,41 +588,60 @@ f5d
 ```
 
 
-```{r}
-Fig5 <- plot_grid(f5a, f5b, f5c, f5d, labels = "AUTO", label_size = 30, hjust=0)
+```{r echo=FALSE,message=FALSE,warning=FALSE}
 
-
-Fig5
-
-
-ggsave("Fig5.png", plot = Fig5, device = "png", path = wd$figs, scale = 1, width = 10, height = 8,   units = "in",  dpi = 1000, bg = "white")
-
-
-
-
-
-
-rm(f5a, f5b, f5c, f5d, Fig5)
+f5d <- ggplot() +
+  geom_point(data = TeoRings, aes(x = PctRow_Area_RuralOpen, y = PctRow_Ring_DStrArea_Low), size=2.5, color="black", shape=16, stroke =2)+
+  geom_line(data = pp3, aes(x=PctRow_Area_Open, y=PctRow_Ring_DStrArea_Low.p), inetype = "solid", color="red", size=1.3) +
+  annotate("label", x = 0.6, y = 0.06, label = "atop(bold(italic(PctLow) == italic(e) ^ (16.4 * ~italic(PctOpen) - 18.8)),bold(italic(pseudo~R^2) == 0.877 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="black", size=4)+
+  xlab("Open % Ring Area") +
+  ylab("Low Status % Ring DStr Area   ") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent, limits=c(0,0.08)) +#, breaks=seq(0.4,1,0.2)
+  scale_x_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
+  #scale_y_continuous(expand = c(0, 0), ,) +
+  #scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000)) +
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f5d
 ```
 
 
 
 
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+areas2 = data.frame("MedRingDist"= TeoRings$MedRingDist,
+                   "High" = TeoRings$PctCol_DStrArea_Elite, 
+                   "Intermediate" = TeoRings$PctCol_DStrArea_IM, 
+                   #"Uncertain" = TeoRings$PctCol_DStrArea_UncerStat,
+                   "Low" = TeoRings$PctCol_Tot_LowDStrArea)
+areas2 = areas2 %>% pivot_longer(2:4, names_to = "Status2", values_to = "Percent") 
+
+Class2 <- factor(areas2$Status2, levels = c('High','Intermediate','Low'))#'Uncertain',
 
 
-scales::rescale(c(142.1237,43.82432,9.37519568567026),c(1,2))
+f5b <- ggplot() +
+  geom_line(data = areas2, aes(x = MedRingDist, y = Percent, color=Class2), size=1.5)+
+  scale_color_manual(name = "Class Status", values = c("green2","gold","red"))+#"orange2",
+  geom_point(data = areas2, aes(x = MedRingDist, y = Percent), size=1.5, color="black", shape=16, stroke =2)+
+  xlab("Distance from Center (km)") +
+  ylab("% of Total DStr Area") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
+  scale_x_continuous(expand = c(0, 0), limits=c(0,4600),breaks=seq(0,4000,1000),
+                     labels=function(x)x/1000) +
+  theme(legend.position = c(0.75, 0.65))+
+  theme(legend.title = element_text(size=14, face="bold"))+
+  theme(legend.text = element_text(size=12, face="bold"))+
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f5b
+```
 
-
-
-# Figure 6
-
-
-
-
-
-st_as_sf
-
-# SM Figs
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 
@@ -834,7 +949,16 @@ gini(cen$PropVal_Pers_AccClass, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "
 
 ```
 
+```{r}
+gini(cen$Area_m2, lc = TRUE, lsize = 2, le.col = "black", lc.col = "darkorange", lcx = "Cumulative Shares of Population (HH or DStr)", lcy = "Cumulative Shares of Wealth Proxies", lctitle = "Teotihuacan Gini Indicies for Wealth Proxies", lcg = TRUE, lcgn = F, lcg.caption =  "1) Domestic Structure (DStr) Area:", lcg.lab.x = 0, lcg.lab.y = 1)  
+gini(cen$ac1, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "firebrick", lcg = TRUE, lcgn = F, lcg.caption =  "2) ac1:", lcg.lab.x = 0, lcg.lab.y = 0.875)
+gini(cen$ac2, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "purple", lcg = TRUE, lcgn = F, lcg.caption =  "3) ac2:", lcg.lab.x = 0, lcg.lab.y = 0.75) 
+gini(cen$ac3, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "blue", lcg = TRUE, lcgn = F, lcg.caption =  "4) ac3:", lcg.lab.x = 0, lcg.lab.y = 0.625)
+gini(cen$ac4, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "green3", lcg = TRUE, lcgn = F, lcg.caption =  "5) ac4:", lcg.lab.x = 0, lcg.lab.y = 0.5)
+gini(cen$ac5, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "cyan3", lcg = TRUE, lcgn = F, lcg.caption =  "6) ac5:", lcg.lab.x = 0, lcg.lab.y = 0.4)
 
+
+```
 
          
 ```{r}
