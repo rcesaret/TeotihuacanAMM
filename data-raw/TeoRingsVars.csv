@@ -8,154 +8,163 @@ Column,Variable,Units,Description,Set
 7,Popdens_TOT,persons/ha,Overall population density of ring,B) Overall Spatial Demography
 8,DStr_TOT,count,Total count of domestic structures within ring,B) Overall Spatial Demography
 9,Area_DStr,ha,Total area of domestic structures within ring,B) Overall Spatial Demography
-10,Avg_Area_DStr,ha,Average domestic structure area within ring,B) Overall Spatial Demography
-11,NonCC_Feat_TOT,count,Total count of Non-CC features within ring,C) Land Use Classes
-12,NonCC_Feat_Area,ha,Total area of Non-CC features within ring,C) Land Use Classes
-13,NonCCDStr_TOT,count,Total count of features within ring that are neither CC features nor domestic structures,C) Land Use Classes
-14,NonCCDStr_Area,ha,Total area of features within ring that are neither CC features nor domestic structures,C) Land Use Classes
-15,OB,count,Total count of Outbuilding features within ring,C) Land Use Classes
-16,OB_Area,ha,Total area of Outbuilding features within ring,C) Land Use Classes
-17,Unoccu,count,Total count of Unoccupied features within ring,C) Land Use Classes
-18,Unoccu_Area,ha,Total area of Unoccupied features within ring,C) Land Use Classes
-19,DomPlat,count,Total count of Domestic Platform features within ring,C) Land Use Classes
-20,DomPlat_Area,ha,Total area of Domestic Platform features within ring,C) Land Use Classes
-21,Unk,count,Total count of Unknown features within ring,C) Land Use Classes
-22,Unk_Area,ha,Total area of Unknown features within ring,C) Land Use Classes
-23,CCStr,count,Total count of CC Structure features within ring,C) Land Use Classes
-24,CCStrArea,ha,Total area of CC Structure features within ring,C) Land Use Classes
-25,AoD,count,Total number of Avenue of the Dead features within ring,C) Land Use Classes
-26,AoD_Area,ha,Total area of Avenue of the Dead features within ring,C) Land Use Classes
-27,Plazas,count,Total count of Plaza features within ring,C) Land Use Classes
-28,Plaza_Area,ha,Total area of Plaza features within ring,C) Land Use Classes
-29,PlazAoD_O,count,Total count of Plaza + Avenue of the Dead features within ring,C) Land Use Classes
-30,PlazAoD_O_Area,ha,Total area of Plaza + Avenue of the Dead features within ring,C) Land Use Classes
-31,CCFeat_AoD_Area,ha,Total area of CC Structure + Avenue of the Dead features within ring,C) Land Use Classes
-32,CCFeat_O_Area,ha,Total area of CC Structure + Plaza + Avenue of the Dead features within ring,C) Land Use Classes
-33,UnOccuFeat,features,Total count of Unoccupied features within ring,C) Land Use Classes
-34,UnOccuFeat_Area,ha,Total area of Unoccupied features within ring,C) Land Use Classes
-35,Popdens_DStrArea,persons/ha,Average occupational (pop) density of domestic structure area within ring,C) Land Use Classes
-36,Area_NonDStr,ha,Total area NOT occupied by Domestic Structures within ring,C) Land Use Classes
-37,Area_NonCCZone,ha,Total area NOT occupied by CC Structures within ring,C) Land Use Classes
-38,Popdens_NonCCZone,persons/ha,Population density of the Non-CC Structure area within ring,C) Land Use Classes
-39,Area_NonCCZone_AoD,ha,Total area NOT occupied by CC Structures OR Avenue of the Dead features within ring,C) Land Use Classes
-40,Popdens_NonCCZone_AoD,persons/ha,Population density of the area NOT occupied by either CC Structures OR Ave of Dead within ring,C) Land Use Classes
-41,Area_NonCCZone_O,ha,Total area NOT occupied by CC Structures OR Plazas OR Avenue of the Dead features within ring,C) Land Use Classes
-42,Popdens_NonCCZone_O,persons/ha,Population density of the area NOT occupied by CC Structures OR Plazas OR Ave of Dead within ring,C) Land Use Classes
-43,Area_Open,ha,Total 'Open' area (unoccupied by any features) within ring,C) Land Use Classes
-44,Area_OpenUnoccu,ha,Total area of open area + unoccupied features within ring,C) Land Use Classes
-45,Area_RuralOpen,ha,Total open area classed as 'rural' (beyond 50m from contiguous features) within ring,C) Land Use Classes
-46,Area_UrbanOpen,ha,Total open area classed as 'urban' (within 50m from contiguous features) within ring,C) Land Use Classes
-47,Area_ArchFeat,ha,Total area of architectural features within ring,C) Land Use Classes
-48,Popdens_ArchFeat,persons/ha,Population density of the total area of architectural features within ring,C) Land Use Classes
-49,Area_BuiltUp,ha,Total 'built-up' area (Urban Open + Arch Features) within ring,C) Land Use Classes
-50,Popdens_BuiltUp,persons/ha,Population density of the total built-up area within ring,C) Land Use Classes
-51,PctRow_Area_DStr,% of ring,Percent of ring area occupied by domestic structures,D) Land Use Proportions by Ring
-52,PctRow_Area_NonDStr,% of ring,Percent of ring area occupied by non-domestic structures,D) Land Use Proportions by Ring
-53,PctRow_Area_CCFeat_AoD,% of ring,Percent of ring area occupied by CC Structures + Avenue of the Dead,D) Land Use Proportions by Ring
-54,PctRow_Area_CCFeat_O,% of ring,Percent of ring area occupied by CC Structures + Avenue of the Dead + Plazas,D) Land Use Proportions by Ring
-55,PctRow_Area_CCStr,% of ring,Percent of ring area occupied by CC Structures,D) Land Use Proportions by Ring
-56,PctRow_Area_Open,% of ring,Percent of ring area that is 'Open' (unoccupied by any features),D) Land Use Proportions by Ring
-57,PctRow_Area_OpenUnoccu,% of ring,Percent of ring area that is Open + unoccupied features,D) Land Use Proportions by Ring
-58,PctRow_Area_RuralOpen,% of ring,Percent of ring area that is Rural Open,D) Land Use Proportions by Ring
-59,PctRow_Area_UrbanOpen,% of ring,Percent of ring area that is Urban Open,D) Land Use Proportions by Ring
-60,PctRow_Area_ArchFeat,% of ring,Percent of ring area that is occupied by architectural features,D) Land Use Proportions by Ring
-61,PctRow_Area_BuiltUp,% of ring,Percent of ring area that is 'built-up' (architectural features + urban open),D) Land Use Proportions by Ring
-62,PctRow_Area_NonCCZone,% of ring,Percent of ring area NOT occupied by CC Structures,D) Land Use Proportions by Ring
-63,PctRow_Area_NonCCZone_AoD,% of ring,Percent of ring area NOT occupied by CC Structures OR Ave of the Dead features,D) Land Use Proportions by Ring
-64,PctRow_Area_NonCCZone_O,% of ring,Percent of ring area NOT occupied by CC Structures OR Plazas OR Ave of the Dead features,D) Land Use Proportions by Ring
-65,PctRow_Area_UnOccuFeat,% of ring,Percent of ring area occupied by Unoccupied features,D) Land Use Proportions by Ring
-66,PctRow_Area_Unk,% of ring,Percent of ring area occupied by Unknown features,D) Land Use Proportions by Ring
-67,PctRow_Area_OB,% of ring,Percent of ring area occupied by Outbuilding features,D) Land Use Proportions by Ring
-68,PctRow_Area_AoD,% of ring,Percent of ring area occupied by Avenue of the Dead features,D) Land Use Proportions by Ring
-69,PctRow_Area_Plazas,% of ring,Percent of ring area occupied by Plazas,D) Land Use Proportions by Ring
-70,PctRow_Area_DomPlat,% of ring,Percent of ring area occupied by Domestic Platforms,D) Land Use Proportions by Ring
-71,PctCol_Area_DStr,% of total,Percent of total domestic structure area within ring,E) Land Use Proportions of Total
-72,PctCol_Area_NonDStr,% of total,Percent of total non-domestic structure area within ring,E) Land Use Proportions of Total
-73,PctCol_Area_CCFeat_AoD,% of total,Percent of total CC Feature area within ring (including Ave of the Dead),E) Land Use Proportions of Total
-74,PctCol_Area_CCFeat_O,% of total,Percent of total CC Feature area within ring (including Ave of the Dead + Plazas),E) Land Use Proportions of Total
-75,PctCol_Area_CCStr,% of total,Percent of total CC Structure area within ring,E) Land Use Proportions of Total
-76,PctCol_Area_Open,% of total,Percent of total Open area within ring,E) Land Use Proportions of Total
-77,PctCol_Area_OpenFields,% of total,Percent of total Open area + Fields area within ring,E) Land Use Proportions of Total
-78,PctCol_Area_RuralOpen,% of total,Percent of total area that is Rural Open within ring,E) Land Use Proportions of Total
-79,PctCol_Area_UrbanOpen,% of total,Percent of total area that is Urban Open within ring,E) Land Use Proportions of Total
-80,PctCol_Area_ArchFeat,% of total,Percent of total area that is occupied by architectural features within ring,E) Land Use Proportions of Total
-81,PctCol_Area_BuiltUp,% of total,Percent of total area that is 'built-up' (architectural features + urban open) within ring,E) Land Use Proportions of Total
-82,PctCol_Area_NonCCZone,% of total,Percent of total Non-CC Zone area (the area NOT occupied by CC Structures) within ring,E) Land Use Proportions of Total
-83,PctCol_Area_NonCCZone_AoD,% of total,Percent of total Non-CC Zone area (the area NOT occupied by CC Structures OR Ave of Dead) within ring,E) Land Use Proportions of Total
-84,PctCol_Area_NonCCZone_O,% of total,Percent of total Non-CC Zone area (the area NOT occupied by CC Structures OR Plazas OR Ave of Dead) within ring,E) Land Use Proportions of Total
-85,PctCol_Area_UnOccuFeat,% of total,Percent of total Unoccupied feature area within ring,E) Land Use Proportions of Total
-86,PctCol_Area_Unk,% of total,Percent of total Unknown feature area within ring,E) Land Use Proportions of Total
-87,PctCol_Area_OB,% of total,Percent of total Outbuilding area within ring,E) Land Use Proportions of Total
-88,PctCol_Area_AoD,% of total,Percent of total Avenue of the Dead area within ring,E) Land Use Proportions of Total
-89,PctCol_Area_Plazas,% of total,Percent of total Plaza area within ring,E) Land Use Proportions of Total
-90,PctCol_Area_DomPlat,% of total,Percent of total Domestic Platform area within ring,E) Land Use Proportions of Total
-91,Elite_DStr,count,Total count of high status domestic structures within ring,F) High Status Residencies
-92,Elite_Pop,persons,Total high status population within ring,F) High Status Residencies
-93,Elite_DStrArea,ha,Total area occupied by high status domestic structures within ring,F) High Status Residencies
-94,Avg_Elite_DStrArea,ha,Average area of high status domestic structures within ring,F) High Status Residencies
-95,Med_Elite_DStrArea,ha,Median area of high status domestic structures within ring,F) High Status Residencies
-96,Avg_Elite_DStrPop,ha,Average population of high status domestic structures within ring,F) High Status Residencies
-97,PctRow_DStr_Elite,% of ring,Percent of domestic structures within ring that are high status,F) High Status Residencies
-98,PctRow_Pop_Elite,% of ring,Percent of population within ring that is high status,F) High Status Residencies
-99,PctRow_DStrArea_Elite,% of ring,Percent of domestic structure area within ring that is high status,F) High Status Residencies
-100,PctCol_DStr_Elite,% of total,Percent of total high status domestic structures within ring,F) High Status Residencies
-101,PctCol_Pop_Elite,% of total,Percent of total high status population within ring,F) High Status Residencies
-102,PctCol_DStrArea_Elite,% of total,Percent of total high status domestic structure area within ring,F) High Status Residencies
-103,Elite_Popdens_NonCCZone,persons/ha,High status ring pop density within Non-CC zone area of ring ( = High status population / Non-CC zone area),F) High Status Residencies
-104,Elite_Popdens_NonCCZone_AoD,persons/ha,High status pop density within Non-CC zone + Ave of Dead area of ring,F) High Status Residencies
-105,Elite_Popdens_NonCCZone_O,persons/ha,High status pop density within Non-CC zone + Ave of Dead + Plazas area of ring,F) High Status Residencies
-106,Elite_Popdens_EliteDStrArea,persons/ha,High status (occupational) pop density within total high status domestic structure area of ring,F) High Status Residencies
-107,Elite_Popdens_TOTArea,persons/ha,High status pop density within total area of ring,F) High Status Residencies
-108,IM_DStr,count,Total count of intermediate status domestic structures within ring,G) Intermediate Status Residencies
-109,IM_Pop,persons,Total intermediate status population within ring,G) Intermediate Status Residencies
-110,IM_DStrArea,ha,Total area occupied by intermediate status domestic structures within ring,G) Intermediate Status Residencies
-111,Avg_IM_DStrArea,ha,Average area of intermediate status domestic structures within ring,G) Intermediate Status Residencies
-112,Med_IM_DStrArea,ha,Median area of intermediate status domestic structures within ring,G) Intermediate Status Residencies
-113,Avg_IM_DStrPop,ha,Average population of intermediate status domestic structures within ring,G) Intermediate Status Residencies
-114,PctRow_DStr_IM,% of ring,Percent of domestic structures within ring that are intermediate status,G) Intermediate Status Residencies
-115,PctRow_Pop_IM,% of ring,Percent of population within ring that is intermediate status,G) Intermediate Status Residencies
-116,PctRow_DStrArea_IM,% of ring,Percent of domestic structure area within ring that is intermediate status,G) Intermediate Status Residencies
-117,PctCol_DStr_IM,% of total,Percent of total intermediate status domestic structures within ring,G) Intermediate Status Residencies
-118,PctCol_Pop_IM,% of total,Percent of total intermediate status population within ring,G) Intermediate Status Residencies
-119,PctCol_DStrArea_IM,% of total,Percent of total intermediate status domestic structure area within ring,G) Intermediate Status Residencies
-120,IM_Popdens_NonCCZone,persons/ha,Intermediate status ring pop density within Non-CC zone area of ring ( = Intermediate status population / Non-CC zone area),G) Intermediate Status Residencies
-121,IM_Popdens_NonCCZone_AoD,persons/ha,Intermediate status pop density within Non-CC zone + Ave of Dead area of ring,G) Intermediate Status Residencies
-122,IM_Popdens_NonCCZone_O,persons/ha,Intermediate status pop density within Non-CC zone + Ave of Dead + Plazas area of ring,G) Intermediate Status Residencies
-123,IM_Popdens_IMDStrArea,persons/ha,Intermediate status (occupational) pop density within total intermediate status domestic structure area of ring,G) Intermediate Status Residencies
-124,IM_Popdens_TOTArea,persons/ha,Intermediate status pop density within total area of ring,G) Intermediate Status Residencies
-125,Low_DStr,count,Total count of low status domestic structures within ring,H) Low Status Residencies
-126,Low_Pop,persons,Total low status population within ring,H) Low Status Residencies
-127,Low_DStrArea,ha,Total area occupied by low status domestic structures within ring,H) Low Status Residencies
-128,Avg_Low_DStrArea,ha,Average area of low status domestic structures within ring,H) Low Status Residencies
-129,Med_Low_DStrArea,ha,Median area of low status domestic structures within ring,H) Low Status Residencies
-130,Avg_Low_DStrPop,ha,Average population of low status domestic structures within ring,H) Low Status Residencies
-131,PctRow_Ring_DStr_Low,% of ring,Percent of domestic structures within ring that are low status,H) Low Status Residencies
-132,PctRow_Ring_Pop_Low,% of ring,Percent of population within ring that is low status,H) Low Status Residencies
-133,PctRow_Ring_DStrArea_Low,% of ring,Percent of domestic structure area within ring that is low status,H) Low Status Residencies
-134,PctCol_Tot_LowDStr,% of total,Percent of total low status domestic structures within ring,H) Low Status Residencies
-135,PctCol_Tot_LowPop,% of total,Percent of total low status population within ring,H) Low Status Residencies
-136,PctCol_Tot_LowDStrArea,% of total,Percent of total low status domestic structure area within ring,H) Low Status Residencies
-137,Low_Popdens_NonCCZone,persons/ha,Low status ring pop density within Non-CC zone area of ring ( = low status population / Non-CC zone area),H) Low Status Residencies
-138,Low_Popdens_NonCCZone_AoD,persons/ha,Low status pop density within Non-CC zone + Ave of Dead area of ring,H) Low Status Residencies
-139,Low_Popdens_NonCCZone_O,persons/ha,Low status pop density within Non-CC zone + Ave of Dead + Plazas area of ring,H) Low Status Residencies
-140,Low_Popdens_TOTArea,persons/ha,Low status pop density within total area of ring,H) Low Status Residencies
-141,Low_Popdens_OpenArea,persons/ha,Low status pop density within open area of ring,H) Low Status Residencies
-142,Low_Popdens_LowDStrArea,persons/ha,Low status (occupational) pop density within total low status domestic structure area of ring,H) Low Status Residencies
-143,UncerStat_DStr,count,Total count of uncertain status domestic structures within ring,I) Uncertain Status Residencies
-144,UncerStat_Pop,persons,Total uncertain status population within ring,I) Uncertain Status Residencies
-145,UncerStat_Area,ha,Total area occupied by uncertain status domestic structures within ring,I) Uncertain Status Residencies
-146,Avg_UncerStat_DStrArea,ha,Average area of uncertain status domestic structures within ring,I) Uncertain Status Residencies
-147,Med_UncerStat_DStrArea,ha,Median area of uncertain status domestic structures within ring,I) Uncertain Status Residencies
-148,Avg_UncerStat_DStrPop,ha,Average population of uncertain status domestic structures within ring,I) Uncertain Status Residencies
-149,PctRow_DStr_UncerStat,% of ring,Percent of domestic structures within ring that are uncertain status,I) Uncertain Status Residencies
-150,PctRow_Pop_UncerStat,% of ring,Percent of population within ring that is uncertain status,I) Uncertain Status Residencies
-151,PctRow_DStrArea_UncerStat,% of ring,Percent of domestic structure area within ring that is uncertain status,I) Uncertain Status Residencies
-152,PctCol_DStr_UncerStat,% of total,Percent of total uncertain status domestic structures within ring,I) Uncertain Status Residencies
-153,PctCol_Pop_UncerStat,% of total,Percent of total uncertain status population within ring,I) Uncertain Status Residencies
-154,PctCol_DStrArea_UncerStat,% of total,Percent of total uncertain status domestic structure area within ring,I) Uncertain Status Residencies
-155,UncerStat_Popdens_NonCCZone,persons/ha,Uncertain status ring pop density within Non-CC zone area of ring ( = Uncertain status population / Non-CC zone area),I) Uncertain Status Residencies
-156,UncerStat_Popdens_NonCCZone_AoD,persons/ha,Uncertain status pop density within Non-CC zone + Ave of Dead area of ring,I) Uncertain Status Residencies
-157,UncerStat_Popdens_NonCCZone_O,persons/ha,Uncertain status pop density within Non-CC zone + Ave of Dead + Plazas area of ring,I) Uncertain Status Residencies
-158,UncerStat_Popdens_TOTArea,persons/ha,Uncertain status pop density within total area of ring,I) Uncertain Status Residencies
-159,UncetStat_Popdens_OpenArea,persons/ha,Uncertain status pop density within open area of ring,I) Uncertain Status Residencies
-160,UncerStat_Popdens_UncerStatDStrArea,persons/ha,Uncertain status (occupational) pop density within total uncertain status domestic structure area of ring,I) Uncertain Status Residencies
+10,Avg_Area_DStr,m2,Average domestic structure area within ring,B) Overall Spatial Demography
+11,Med_DStrArea,m2,Median domestic structure area within ring,B) Overall Spatial Demography
+12,Avg_OccuDens,persons/m2,Average occupational pop density of domestic structures within ring,B) Overall Spatial Demography
+13,Avg_DStrArea_perCapita,m2/persons,Average domestic structure area per person within ring,B) Overall Spatial Demography
+14,NonCC_Feat_TOT,count,Total count of Non-CC features within ring,C) Land Use Classes
+15,NonCC_Feat_Area,ha,Total area of Non-CC features within ring,C) Land Use Classes
+16,NonCCDStr_TOT,count,Total count of features within ring that are neither CC features nor domestic structures,C) Land Use Classes
+17,NonCCDStr_Area,ha,Total area of features within ring that are neither CC features nor domestic structures,C) Land Use Classes
+18,OB,count,Total count of Outbuilding features within ring,C) Land Use Classes
+19,OB_Area,ha,Total area of Outbuilding features within ring,C) Land Use Classes
+20,Unoccu,count,Total count of Unoccupied features within ring,C) Land Use Classes
+21,Unoccu_Area,ha,Total area of Unoccupied features within ring,C) Land Use Classes
+22,DomPlat,count,Total count of Domestic Platform features within ring,C) Land Use Classes
+23,DomPlat_Area,ha,Total area of Domestic Platform features within ring,C) Land Use Classes
+24,Unk,count,Total count of Unknown features within ring,C) Land Use Classes
+25,Unk_Area,ha,Total area of Unknown features within ring,C) Land Use Classes
+26,CCStr,count,Total count of CC Structure features within ring,C) Land Use Classes
+27,CCStrArea,ha,Total area of CC Structure features within ring,C) Land Use Classes
+28,AoD,count,Total number of Avenue of the Dead features within ring,C) Land Use Classes
+29,AoD_Area,ha,Total area of Avenue of the Dead features within ring,C) Land Use Classes
+30,Plazas,count,Total count of Plaza features within ring,C) Land Use Classes
+31,Plaza_Area,ha,Total area of Plaza features within ring,C) Land Use Classes
+32,PlazAoD_O,count,Total count of Plaza + Avenue of the Dead features within ring,C) Land Use Classes
+33,PlazAoD_O_Area,ha,Total area of Plaza + Avenue of the Dead features within ring,C) Land Use Classes
+34,CCFeat_AoD_Area,ha,Total area of CC Structure + Avenue of the Dead features within ring,C) Land Use Classes
+35,CCFeat_O_Area,ha,Total area of CC Structure + Plaza + Avenue of the Dead features within ring,C) Land Use Classes
+36,UnOccuFeat,features,Total count of Unoccupied features within ring,C) Land Use Classes
+37,UnOccuFeat_Area,ha,Total area of Unoccupied features within ring,C) Land Use Classes
+38,Popdens_DStrArea,persons/ha,Average occupational (pop) density of domestic structure area within ring,C) Land Use Classes
+39,Area_NonDStr,ha,Total area NOT occupied by Domestic Structures within ring,C) Land Use Classes
+40,Area_NonCCZone,ha,Total area NOT occupied by CC Structures within ring,C) Land Use Classes
+41,Popdens_NonCCZone,persons/ha,Population density of the Non-CC Structure area within ring,C) Land Use Classes
+42,Area_NonCCZone_AoD,ha,Total area NOT occupied by CC Structures OR Avenue of the Dead features within ring,C) Land Use Classes
+43,Popdens_NonCCZone_AoD,persons/ha,Population density of the area NOT occupied by either CC Structures OR Ave of Dead within ring,C) Land Use Classes
+44,Area_NonCCZone_O,ha,Total area NOT occupied by CC Structures OR Plazas OR Avenue of the Dead features within ring,C) Land Use Classes
+45,Popdens_NonCCZone_O,persons/ha,Population density of the area NOT occupied by CC Structures OR Plazas OR Ave of Dead within ring,C) Land Use Classes
+46,Area_Open,ha,Total 'Open' area (unoccupied by any features) within ring,C) Land Use Classes
+47,Area_OpenUnoccu,ha,Total area of open area + unoccupied features within ring,C) Land Use Classes
+48,Area_RuralOpen,ha,Total open area classed as 'rural' (beyond 50m from contiguous features) within ring,C) Land Use Classes
+49,Area_UrbanOpen,ha,Total open area classed as 'urban' (within 50m from contiguous features) within ring,C) Land Use Classes
+50,Area_ArchFeat,ha,Total area of architectural features within ring,C) Land Use Classes
+51,Popdens_ArchFeat,persons/ha,Population density of the total area of architectural features within ring,C) Land Use Classes
+52,Area_BuiltUp,ha,Total 'built-up' area (Urban Open + Arch Features) within ring,C) Land Use Classes
+53,Popdens_BuiltUp,persons/ha,Population density of the total built-up area within ring,C) Land Use Classes
+54,PctRow_Area_DStr,% of ring,Percent of ring area occupied by domestic structures,D) Land Use Proportions by Ring
+55,PctRow_Area_NonDStr,% of ring,Percent of ring area occupied by non-domestic structures,D) Land Use Proportions by Ring
+56,PctRow_Area_CCFeat_AoD,% of ring,Percent of ring area occupied by CC Structures + Avenue of the Dead,D) Land Use Proportions by Ring
+57,PctRow_Area_CCFeat_O,% of ring,Percent of ring area occupied by CC Structures + Avenue of the Dead + Plazas,D) Land Use Proportions by Ring
+58,PctRow_Area_CCStr,% of ring,Percent of ring area occupied by CC Structures,D) Land Use Proportions by Ring
+59,PctRow_Area_Open,% of ring,Percent of ring area that is 'Open' (unoccupied by any features),D) Land Use Proportions by Ring
+60,PctRow_Area_OpenUnoccu,% of ring,Percent of ring area that is Open + unoccupied features,D) Land Use Proportions by Ring
+61,PctRow_Area_RuralOpen,% of ring,Percent of ring area that is Rural Open,D) Land Use Proportions by Ring
+62,PctRow_Area_UrbanOpen,% of ring,Percent of ring area that is Urban Open,D) Land Use Proportions by Ring
+63,PctRow_Area_ArchFeat,% of ring,Percent of ring area that is occupied by architectural features,D) Land Use Proportions by Ring
+64,PctRow_Area_BuiltUp,% of ring,Percent of ring area that is 'built-up' (architectural features + urban open),D) Land Use Proportions by Ring
+65,PctRow_Area_NonCCZone,% of ring,Percent of ring area NOT occupied by CC Structures,D) Land Use Proportions by Ring
+66,PctRow_Area_NonCCZone_AoD,% of ring,Percent of ring area NOT occupied by CC Structures OR Ave of the Dead features,D) Land Use Proportions by Ring
+67,PctRow_Area_NonCCZone_O,% of ring,Percent of ring area NOT occupied by CC Structures OR Plazas OR Ave of the Dead features,D) Land Use Proportions by Ring
+68,PctRow_Area_UnOccuFeat,% of ring,Percent of ring area occupied by Unoccupied features,D) Land Use Proportions by Ring
+69,PctRow_Area_Unk,% of ring,Percent of ring area occupied by Unknown features,D) Land Use Proportions by Ring
+70,PctRow_Area_OB,% of ring,Percent of ring area occupied by Outbuilding features,D) Land Use Proportions by Ring
+71,PctRow_Area_AoD,% of ring,Percent of ring area occupied by Avenue of the Dead features,D) Land Use Proportions by Ring
+72,PctRow_Area_Plazas,% of ring,Percent of ring area occupied by Plazas,D) Land Use Proportions by Ring
+73,PctRow_Area_DomPlat,% of ring,Percent of ring area occupied by Domestic Platforms,D) Land Use Proportions by Ring
+74,PctCol_Area_DStr,% of total,Percent of total domestic structure area within ring,E) Land Use Proportions of Total
+75,PctCol_Area_NonDStr,% of total,Percent of total non-domestic structure area within ring,E) Land Use Proportions of Total
+76,PctCol_Area_CCFeat_AoD,% of total,Percent of total CC Feature area within ring (including Ave of the Dead),E) Land Use Proportions of Total
+77,PctCol_Area_CCFeat_O,% of total,Percent of total CC Feature area within ring (including Ave of the Dead + Plazas),E) Land Use Proportions of Total
+78,PctCol_Area_CCStr,% of total,Percent of total CC Structure area within ring,E) Land Use Proportions of Total
+79,PctCol_Area_Open,% of total,Percent of total Open area within ring,E) Land Use Proportions of Total
+80,PctCol_Area_OpenFields,% of total,Percent of total Open area + Fields area within ring,E) Land Use Proportions of Total
+81,PctCol_Area_RuralOpen,% of total,Percent of total area that is Rural Open within ring,E) Land Use Proportions of Total
+82,PctCol_Area_UrbanOpen,% of total,Percent of total area that is Urban Open within ring,E) Land Use Proportions of Total
+83,PctCol_Area_ArchFeat,% of total,Percent of total area that is occupied by architectural features within ring,E) Land Use Proportions of Total
+84,PctCol_Area_BuiltUp,% of total,Percent of total area that is 'built-up' (architectural features + urban open) within ring,E) Land Use Proportions of Total
+85,PctCol_Area_NonCCZone,% of total,Percent of total Non-CC Zone area (the area NOT occupied by CC Structures) within ring,E) Land Use Proportions of Total
+86,PctCol_Area_NonCCZone_AoD,% of total,Percent of total Non-CC Zone area (the area NOT occupied by CC Structures OR Ave of Dead) within ring,E) Land Use Proportions of Total
+87,PctCol_Area_NonCCZone_O,% of total,Percent of total Non-CC Zone area (the area NOT occupied by CC Structures OR Plazas OR Ave of Dead) within ring,E) Land Use Proportions of Total
+88,PctCol_Area_UnOccuFeat,% of total,Percent of total Unoccupied feature area within ring,E) Land Use Proportions of Total
+89,PctCol_Area_Unk,% of total,Percent of total Unknown feature area within ring,E) Land Use Proportions of Total
+90,PctCol_Area_OB,% of total,Percent of total Outbuilding area within ring,E) Land Use Proportions of Total
+91,PctCol_Area_AoD,% of total,Percent of total Avenue of the Dead area within ring,E) Land Use Proportions of Total
+92,PctCol_Area_Plazas,% of total,Percent of total Plaza area within ring,E) Land Use Proportions of Total
+93,PctCol_Area_DomPlat,% of total,Percent of total Domestic Platform area within ring,E) Land Use Proportions of Total
+94,Elite_DStr,count,Total count of high status domestic structures within ring,F) High Status Residencies
+95,Elite_Pop,persons,Total high status population within ring,F) High Status Residencies
+96,Elite_DStrArea,ha,Total area occupied by high status domestic structures within ring,F) High Status Residencies
+97,Avg_Elite_DStrArea,m2,Average area of high status domestic structures within ring,F) High Status Residencies
+98,Med_Elite_DStrArea,m2,Median area of high status domestic structures within ring,F) High Status Residencies
+99,Avg_Elite_DStrPop,ha,Average population of high status domestic structures within ring,F) High Status Residencies
+100,PctRow_DStr_Elite,% of ring,Percent of domestic structures within ring that are high status,F) High Status Residencies
+101,PctRow_Pop_Elite,% of ring,Percent of population within ring that is high status,F) High Status Residencies
+102,PctRow_DStrArea_Elite,% of ring,Percent of domestic structure area within ring that is high status,F) High Status Residencies
+103,PctCol_DStr_Elite,% of total,Percent of total high status domestic structures within ring,F) High Status Residencies
+104,PctCol_Pop_Elite,% of total,Percent of total high status population within ring,F) High Status Residencies
+105,PctCol_DStrArea_Elite,% of total,Percent of total high status domestic structure area within ring,F) High Status Residencies
+106,Elite_Popdens_NonCCZone,persons/ha,High status ring pop density within Non-CC zone area of ring ( = High status population / Non-CC zone area),F) High Status Residencies
+107,Elite_Popdens_NonCCZone_AoD,persons/ha,High status pop density within Non-CC zone + Ave of Dead area of ring,F) High Status Residencies
+108,Elite_Popdens_NonCCZone_O,persons/ha,High status pop density within Non-CC zone + Ave of Dead + Plazas area of ring,F) High Status Residencies
+109,Elite_Popdens_EliteDStrArea,persons/ha,High status (occupational) pop density within total high status domestic structure area of ring,F) High Status Residencies
+110,Elite_Popdens_TOTArea,persons/ha,High status pop density within total area of ring,F) High Status Residencies
+111,IM_DStr,count,Total count of intermediate status domestic structures within ring,G) Intermediate Status Residencies
+112,IM_Pop,persons,Total intermediate status population within ring,G) Intermediate Status Residencies
+113,IM_DStrArea,ha,Total area occupied by intermediate status domestic structures within ring,G) Intermediate Status Residencies
+114,Avg_IM_DStrArea,m2,Average area of intermediate status domestic structures within ring,G) Intermediate Status Residencies
+115,Med_IM_DStrArea,m2,Median area of intermediate status domestic structures within ring,G) Intermediate Status Residencies
+116,Avg_IM_DStrPop,ha,Average population of intermediate status domestic structures within ring,G) Intermediate Status Residencies
+117,PctRow_DStr_IM,% of ring,Percent of domestic structures within ring that are intermediate status,G) Intermediate Status Residencies
+118,PctRow_Pop_IM,% of ring,Percent of population within ring that is intermediate status,G) Intermediate Status Residencies
+119,PctRow_DStrArea_IM,% of ring,Percent of domestic structure area within ring that is intermediate status,G) Intermediate Status Residencies
+120,PctCol_DStr_IM,% of total,Percent of total intermediate status domestic structures within ring,G) Intermediate Status Residencies
+121,PctCol_Pop_IM,% of total,Percent of total intermediate status population within ring,G) Intermediate Status Residencies
+122,PctCol_DStrArea_IM,% of total,Percent of total intermediate status domestic structure area within ring,G) Intermediate Status Residencies
+123,IM_Popdens_NonCCZone,persons/ha,Intermediate status ring pop density within Non-CC zone area of ring ( = Intermediate status population / Non-CC zone area),G) Intermediate Status Residencies
+124,IM_Popdens_NonCCZone_AoD,persons/ha,Intermediate status pop density within Non-CC zone + Ave of Dead area of ring,G) Intermediate Status Residencies
+125,IM_Popdens_NonCCZone_O,persons/ha,Intermediate status pop density within Non-CC zone + Ave of Dead + Plazas area of ring,G) Intermediate Status Residencies
+126,IM_Popdens_IMDStrArea,persons/ha,Intermediate status (occupational) pop density within total intermediate status domestic structure area of ring,G) Intermediate Status Residencies
+127,IM_Popdens_TOTArea,persons/ha,Intermediate status pop density within total area of ring,G) Intermediate Status Residencies
+128,Low_DStr,count,Total count of low status domestic structures within ring,H) Low Status Residencies
+129,Low_Pop,persons,Total low status population within ring,H) Low Status Residencies
+130,Low_DStrArea,ha,Total area occupied by low status domestic structures within ring,H) Low Status Residencies
+131,Avg_Low_DStrArea,m2,Average area of low status domestic structures within ring,H) Low Status Residencies
+132,Med_Low_DStrArea,m2,Median area of low status domestic structures within ring,H) Low Status Residencies
+133,Avg_Low_DStrPop,ha,Average population of low status domestic structures within ring,H) Low Status Residencies
+134,PctRow_Ring_DStr_Low,% of ring,Percent of domestic structures within ring that are low status,H) Low Status Residencies
+135,PctRow_Ring_Pop_Low,% of ring,Percent of population within ring that is low status,H) Low Status Residencies
+136,PctRow_Ring_DStrArea_Low,% of ring,Percent of domestic structure area within ring that is low status,H) Low Status Residencies
+137,PctCol_Tot_LowDStr,% of total,Percent of total low status domestic structures within ring,H) Low Status Residencies
+138,PctCol_Tot_LowPop,% of total,Percent of total low status population within ring,H) Low Status Residencies
+139,PctCol_Tot_LowDStrArea,% of total,Percent of total low status domestic structure area within ring,H) Low Status Residencies
+140,Low_Popdens_NonCCZone,persons/ha,Low status ring pop density within Non-CC zone area of ring ( = low status population / Non-CC zone area),H) Low Status Residencies
+141,Low_Popdens_NonCCZone_AoD,persons/ha,Low status pop density within Non-CC zone + Ave of Dead area of ring,H) Low Status Residencies
+142,Low_Popdens_NonCCZone_O,persons/ha,Low status pop density within Non-CC zone + Ave of Dead + Plazas area of ring,H) Low Status Residencies
+143,Low_Popdens_TOTArea,persons/ha,Low status pop density within total area of ring,H) Low Status Residencies
+144,Low_Popdens_OpenArea,persons/ha,Low status pop density within open area of ring,H) Low Status Residencies
+145,Low_Popdens_LowDStrArea,persons/ha,Low status (occupational) pop density within total low status domestic structure area of ring,H) Low Status Residencies
+146,UncerStat_DStr,count,Total count of uncertain status domestic structures within ring,I) Uncertain Status Residencies
+147,UncerStat_Pop,persons,Total uncertain status population within ring,I) Uncertain Status Residencies
+148,UncerStat_Area,ha,Total area occupied by uncertain status domestic structures within ring,I) Uncertain Status Residencies
+149,Avg_UncerStat_DStrArea,m2,Average area of uncertain status domestic structures within ring,I) Uncertain Status Residencies
+150,Med_UncerStat_DStrArea,m2,Median area of uncertain status domestic structures within ring,I) Uncertain Status Residencies
+151,Avg_UncerStat_DStrPop,ha,Average population of uncertain status domestic structures within ring,I) Uncertain Status Residencies
+152,PctRow_DStr_UncerStat,% of ring,Percent of domestic structures within ring that are uncertain status,I) Uncertain Status Residencies
+153,PctRow_Pop_UncerStat,% of ring,Percent of population within ring that is uncertain status,I) Uncertain Status Residencies
+154,PctRow_DStrArea_UncerStat,% of ring,Percent of domestic structure area within ring that is uncertain status,I) Uncertain Status Residencies
+155,PctCol_DStr_UncerStat,% of total,Percent of total uncertain status domestic structures within ring,I) Uncertain Status Residencies
+156,PctCol_Pop_UncerStat,% of total,Percent of total uncertain status population within ring,I) Uncertain Status Residencies
+157,PctCol_DStrArea_UncerStat,% of total,Percent of total uncertain status domestic structure area within ring,I) Uncertain Status Residencies
+158,UncerStat_Popdens_NonCCZone,persons/ha,Uncertain status ring pop density within Non-CC zone area of ring ( = Uncertain status population / Non-CC zone area),I) Uncertain Status Residencies
+159,UncerStat_Popdens_NonCCZone_AoD,persons/ha,Uncertain status pop density within Non-CC zone + Ave of Dead area of ring,I) Uncertain Status Residencies
+160,UncerStat_Popdens_NonCCZone_O,persons/ha,Uncertain status pop density within Non-CC zone + Ave of Dead + Plazas area of ring,I) Uncertain Status Residencies
+161,UncerStat_Popdens_TOTArea,persons/ha,Uncertain status pop density within total area of ring,I) Uncertain Status Residencies
+162,UncetStat_Popdens_OpenArea,persons/ha,Uncertain status pop density within open area of ring,I) Uncertain Status Residencies
+163,UncerStat_Popdens_UncerStatDStrArea,persons/ha,Uncertain status (occupational) pop density within total uncertain status domestic structure area of ring,I) Uncertain Status Residencies
+164,DStrArea_Gini_TOT,Gini Index,Gini index of all domestic structure areas within ring,J) Domestic Structure Area Gini Index Inequalities
+165,DStrArea_Gini_Low,Gini Index,Gini index of low status domestic structure areas within ring,J) Domestic Structure Area Gini Index Inequalities
+166,DStrArea_Gini_IM,Gini Index,Gini index of intermediate status domestic structure areas within ring,J) Domestic Structure Area Gini Index Inequalities
+167,DStrArea_Gini_IMU,Gini Index,Gini index of intermediate + uncertain status domestic structure areas within ring,J) Domestic Structure Area Gini Index Inequalities
+168,DStrArea_Gini_U,Gini Index,Gini index of uncertain status domestic structure areas within ring,J) Domestic Structure Area Gini Index Inequalities
+169,DStrArea_Gini_High,Gini Index,Gini index of high status domestic structure areas within ring,J) Domestic Structure Area Gini Index Inequalities

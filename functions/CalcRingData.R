@@ -7,7 +7,7 @@
 #### 
 #### 
 
-pak <- c("rgdal", "sp", "sf", "GISTools", "lwgeom", "tidyverse", "tidyr")
+pak <- c("rgdal", "sp", "sf", "GISTools", "lwgeom", "tidyverse", "tidyr", "REAT")
 # Install packages not yet installed
 ip <- pak %in% rownames(installed.packages())
 if (any(ip == FALSE)) {
@@ -94,7 +94,39 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
     XM_Area_Unk = XM_macro_Unk_bi * Area_m2,
     XM_Pop = XM_Pop_Low + XM_Pop_IM + XM_Pop_High + XM_Pop_UncertStat)
 
+  Med_DStrArea <- PolyData@data %>%
+    group_by(!!sym(RingVersion)) %>%
+    summarise(Med_DStrArea = my_median(Area_m2)) %>% pull(Med_DStrArea)
   
+  Teo_Rings_Ineq <- PolyData@data %>%
+    group_by(!!sym(RingVersion)) %>%
+    summarise(DStrArea_Gini_TOT = gini(Area_m2))
+  
+  Teo_Rings_Ineq$DStrArea_Gini_Low <- PolyData@data %>% filter(XM_Low_bi == 1) %>% 
+    group_by(!!sym(RingVersion)) %>%
+    summarise(DStrArea_Gini = gini(Area_m2)) %>% pull(DStrArea_Gini)
+  
+  Teo_Rings_Ineq$DStrArea_Gini_IM <- PolyData@data %>% filter(XM_IM_bi == 1) %>% 
+    group_by(!!sym(RingVersion)) %>%
+    summarise(DStrArea_Gini = gini(Area_m2)) %>% pull(DStrArea_Gini)
+  
+  Teo_Rings_Ineq$DStrArea_Gini_IMU <- PolyData@data %>% filter(XM_IM_bi == 1 | XM_UncertStat_bi == 1) %>% 
+    group_by(!!sym(RingVersion)) %>%
+    summarise(DStrArea_Gini = gini(Area_m2))  %>% pull(DStrArea_Gini)
+  
+  Teo_Rings_Ineq_Uncert <- PolyData@data %>% filter(XM_UncertStat_bi == 1, !!sym(RingVersion) != 1) %>% 
+    group_by(!!sym(RingVersion)) %>%
+    summarise(DStrArea_Gini = gini(Area_m2)) %>% pull(DStrArea_Gini)
+  
+  Teo_Rings_Ineq$DStrArea_Gini_U = c(NA,Teo_Rings_Ineq_Uncert)
+  
+  Teo_Rings_Ineq_High <- PolyData@data %>% filter(XM_High_bi == 1, !!sym(RingVersion) == 1 | !!sym(RingVersion) == 2 | !!sym(RingVersion) == 3 | !!sym(RingVersion) == 4) %>% 
+    group_by(!!sym(RingVersion)) %>%
+    summarise(DStrArea_Gini = gini(Area_m2)) %>% pull(DStrArea_Gini)
+  
+  Teo_Rings_Ineq$DStrArea_Gini_High = c(Teo_Rings_Ineq_High,NA,NA,NA,NA,NA)
+  
+  Teo_Rings_Ineq = Teo_Rings_Ineq[,-1]
   ## Summarize Data By Ring
   
   
@@ -137,26 +169,26 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
       Elite_DStr = sum(XM_grp_High_bi, na.rm=T),
       Elite_Pop = sum(XM_Pop_High, na.rm=T),
       Elite_DStrArea = sum(XM_Area_High, na.rm=T) * 0.0001,
-      Avg_Elite_DStrArea = my_mean(XM_Area_High) * 0.0001,
-      Med_Elite_DStrArea = my_median(XM_Area_High) * 0.0001,
+      Avg_Elite_DStrArea = my_mean(XM_Area_High),
+      Med_Elite_DStrArea = my_median(XM_Area_High),
       Avg_Elite_DStrPop = my_mean(XM_Pop_High),
       IM_DStr = sum(XM_grp_IM_bi, na.rm=T),
       IM_Pop = sum(XM_Pop_IM, na.rm=T),
       IM_DStrArea = sum(XM_Area_IM, na.rm=T) * 0.0001,
-      Avg_IM_DStrArea = my_mean(XM_Area_IM) * 0.0001,
-      Med_IM_DStrArea = my_median(XM_Area_IM) * 0.0001,
+      Avg_IM_DStrArea = my_mean(XM_Area_IM),
+      Med_IM_DStrArea = my_median(XM_Area_IM),
       Avg_IM_DStrPop = my_mean(XM_Pop_IM),
       Low_DStr = sum(XM_grp_Low_bi, na.rm=T),
       Low_Pop = sum(XM_Pop_Low, na.rm=T),
       Low_DStrArea = sum(XM_Area_Low, na.rm=T) * 0.0001,
-      Avg_Low_DStrArea = my_mean(XM_Area_Low) * 0.0001,
-      Med_Low_DStrArea = my_median(XM_Area_Low) * 0.0001,
+      Avg_Low_DStrArea = my_mean(XM_Area_Low),
+      Med_Low_DStrArea = my_median(XM_Area_Low),
       Avg_Low_DStrPop = my_mean(XM_Pop_Low),
       UncerStat_DStr = sum(XM_grp_UncertStat_bi, na.rm=T),
       UncerStat_Pop = sum(XM_Pop_UncertStat, na.rm=T),
       UncerStat_Area = sum(XM_Area_UncertStat, na.rm=T) * 0.0001,
-      Avg_UncerStat_DStrArea = my_mean(XM_Area_UncertStat) * 0.0001,
-      Med_UncerStat_DStrArea = my_median(XM_Area_UncertStat) * 0.0001,
+      Avg_UncerStat_DStrArea = my_mean(XM_Area_UncertStat),
+      Med_UncerStat_DStrArea = my_median(XM_Area_UncertStat),
       Avg_UncerStat_DStrPop = my_mean(XM_Pop_UncertStat))
   
   ## Replace NaN and NA with zero (0)
@@ -177,7 +209,6 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
   
   
   ## Construct Ring Dataset
-  OpenArea
   
   Ring <- RingsPoly@data$Ring   
   MinRingDist <- RingsPoly@data$Dist - 500
@@ -188,8 +219,11 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
   Pop_TOT = Teo_Rings$Pop_TOT
   DStr_TOT = Teo_Rings$DStr_TOT
   Area_DStr = Teo_Rings$Area_DStr
-  Avg_Area_DStr = Area_DStr / DStr_TOT
-  Ring_Data <- data.frame(Ring,MinRingDist,MedRingDist,MaxRingDist,Ring_Area,Pop_TOT,Popdens_TOT,DStr_TOT,Area_DStr,Avg_Area_DStr)
+  Avg_Area_DStr = Area_DStr / DStr_TOT * 10000
+  Med_Area_DStr = Med_DStrArea * 10000
+  Avg_OccuDens = Pop_TOT / Area_DStr * 10000
+  Avg_DStrArea_perCapita = Area_DStr * 10000 / Pop_TOT
+  Ring_Data <- data.frame(Ring,MinRingDist,MedRingDist,MaxRingDist,Ring_Area,Pop_TOT,Popdens_TOT,DStr_TOT,Area_DStr,Avg_Area_DStr, Med_Area_DStr,Avg_OccuDens, Avg_DStrArea_perCapita)
   Next <- Teo_Rings[,c(5:28)]
   Elite <- Teo_Rings[,c(29:34)]
   IM <- Teo_Rings[,c(35:40)]
@@ -330,6 +364,8 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
            UncerStat_Popdens_TOTArea = UncerStat_Pop / Ring_Area,
            UncetStat_Popdens_OpenArea = UncerStat_Pop / Area_Open,
            UncerStat_Popdens_UncerStatDStrArea = UncerStat_Pop / UncerStat_Area)
+  
+  Ring_Data <- cbind(Ring_Data,Teo_Rings_Ineq) 
   
   
   ## Outputs
