@@ -101,7 +101,7 @@ RuralOpenPoly <- invisible(readOGR(paste0(wd$data_r,"RuralOpenPoly.gpkg")))
 
 ```
 
-# Figure 3: Weighted Kernel Density Map of Pop Density
+# Figure 3
 
 ```{r}
 distm <- 250
@@ -147,11 +147,20 @@ CCFeatPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "CCFeat")
 AoDPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "AoD")
 PlazaPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "Plaza")
 
-  my_breaks <- c(0, 43, 85, floor(max(Teo_smooth$v, na.rm=T)))
+  
+```
+theme(legend.title.align=0.5) 
+
+scale_fill_viridis_c(option = "rocket", na.value = NA, 
+                       name = paste0(distm,"m Smoothed    \nPop Density    "),
+                       breaks = my_breaks, labels = my_labs) +
+                       
+```{r}
+my_breaks <- c(0, 43, 85, floor(max(Teo_smooth$v, na.rm=T)))
   my_labs <- sapply(my_breaks, paste, "/ha", sep="")
   my_breaks[1] <- 1
 #plasma inferno cividis viridis     begin = 0.15, 
-plt = ggplot() +geom_stars(data = Teo_PopDens)+
+map = ggplot() +geom_stars(data = Teo_PopDens)+
   scale_fill_viridis_c(option = "rocket", na.value = NA, 
                        name = paste0(distm,"m Smoothed    \nPop Density    "),
                        breaks = my_breaks, labels = my_labs) +
@@ -167,21 +176,16 @@ plt = ggplot() +geom_stars(data = Teo_PopDens)+
   geom_sf(data = TMP_MapPoly_sf, fill=NA, color="black", size=1.5) +
   coord_sf(datum = sf::st_crs(32614))+
   theme_void() +
-  theme(legend.position = c(0,0.5), legend.key.width = unit(1, "cm"), legend.key.height = unit(1.6, "cm"))+
-  theme(legend.title = element_text(size=14, face="bold"))+
-  theme(legend.text = element_text(size=12, face="bold"))
-plt
-ggsave("Fig3_PopDens.png", plot = plt, device = "png", path = wd$figs, scale = 1, width = 8, height = 5,   units = "in",  dpi = 1000, bg = "white")
+  theme(legend.position = c(0.9,0.8))+#legend.key.width = unit(1, "cm"), legend.key.height = unit(1.6, "cm")
+  theme(legend.title = element_text(size=11, face="bold"))+
+  theme(legend.text = element_text(size=10, face="bold"))#+
+  #theme(legend.title.align=0.5)
+map
+#ggsave("Fig3_PopDens.png", plot = plt, device = "png", path = wd$figs, scale = 1, width = 8, height = 5,   units = "in",  dpi = 1000, bg = "white")
 
-rm(w,UncertStat_sf,TMP_MapPoly,TMP_MapPoly_sf,TeoPts_sf,Teo_smooth,Teo_ppp,Teo_PopDens,Teo_ArchPts_Data,Teo_ArchPoly_Data,RingsPoly_sf,RingsPoly,pts_agg_sp,pts_agg,PlazaPoly_sf,Low_sf,IM_sf,High_sf,cents,CCFeatPoly_sf,AoDPoly_sf,plt,my_breaks,my_labs,distm,BufArea,RuralOpenPoly_sf)
+#rm(w,UncertStat_sf,TMP_MapPoly,TMP_MapPoly_sf,TeoPts_sf,Teo_smooth,Teo_ppp,Teo_PopDens,Teo_ArchPts_Data,Teo_ArchPoly_Data,RingsPoly_sf,RingsPoly,pts_agg_sp,pts_agg,PlazaPoly_sf,Low_sf,IM_sf,High_sf,cents,CCFeatPoly_sf,AoDPoly_sf,my_breaks,my_labs,distm,BufArea,RuralOpenPoly_sf)
 ```
 
-
-
-
-
-
-# Figure 4
 
 ## Population Density Falloff Curve
 
@@ -225,11 +229,13 @@ exp_nls_fit_results[[3]]
 ```
 
 
+
+
 ### Graph the Model
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 
-f4a <- ggplot() +
+f3b <- ggplot() +
   geom_point(data = TeoRings, aes(x = MedRingDist, y = Popdens_BuiltUp, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
   
   geom_line(data = pp, aes(x=MedRingDist, y=Popdens_BuiltUp.p), inetype = "solid", color="red", size=1.3) +
@@ -239,21 +245,87 @@ f4a <- ggplot() +
   geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = Popdens_BuiltUp, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=1.5, size=1) +
   #geom_point(data = TeoRings %>% filter(Ring > 1), aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
   #geom_point(data = TeoRings %>% filter(Ring < 2), aes(x = MedRingDist, y = Popdens_TOT), size=3, color="red2", shape=4, stroke =2)+
-  annotate("label", x = 3000, y = 70, label = "atop(bold(italic(PopDens) == 131.8 * italic(e) ^ (-0.00064 * ~italic(Dist))),bold(italic(pseudo~R^2) == 0.978 ~~~~~~ italic(n) == 8 ))", parse = TRUE, color ="black", size=4)+
+  annotate("label", x = 3000, y = 70, label = "atop(bold(italic(PopDens) == 131.8 * italic(e) ^ (-0.00064 * ~italic(Dist))),bold(italic(pseudo~R^2) == 0.978 ~~~~~~ italic(n) == 8 ))", parse = TRUE, color ="black", size=5)+
   #ggtitle("Total Population Density Gradient for 500-meter Concentric Rings", subtitle= "Teotihuacan, Xolalpan-Metepec Phase (c. AD 350-600)") +
   xlab("Distance from Center (km)") +
-  ylab("Pop Density (per ha)") +
+  ylab("Population Density (per ha)") +
   theme_bw() +
-  scale_y_continuous(expand = c(0, 0), limits=c(0,85)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0,85), breaks=seq(10,70,20)) +
   scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000),
                      labels=function(x)x/1000) +
   theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
   theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(axis.text = element_text(size = 14, color="black")) +
+  theme(axis.title.y = element_text(size = 16, face = "bold")) +
+  theme(axis.title.x = element_text(size = 16, face = "bold"))
+f3b
+```
+
+
+
+
+```{r}
+Fig3 <- plot_grid(map,f3b, labels = "AUTO", label_size = 40, hjust=0)
+  #,
+  # ncol = 2
+  #label_x = 1, label_y = 1
+Fig3
+
+ggsave("Fig3.png", plot = Fig3, device = "png", path = wd$figs, scale = 1, width = 12, height = 5.5,   units = "in",  dpi = 1000, bg = "white")
+
+rm(f3a, f3b, Fig3)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Figure 4
+
+
+## Figure 4A
+
+
+```{r}
+
+areas = data.frame("Ring"= TeoRings$Ring, "MedRingDist"= TeoRings$MedRingDist, "DomStruct" = (TeoRings$Area_DStr+TeoRings$DomPlat_Area), "CCFeat" = TeoRings$CCFeat_O_Area, "UrbanOpen" = (TeoRings$Area_UrbanOpen + TeoRings$UnOccuFeat_Area), "RuralOpen" = TeoRings$Area_RuralOpen)
+areas = areas %>% pivot_longer(3:6, names_to = "Land_Use", values_to = "Area") %>%
+  group_by(Ring, Land_Use) %>%
+  summarise(n = sum(Area)) %>%
+  mutate(percentage = n / sum(n))
+LandUse <- factor(areas$Land_Use, levels = c("RuralOpen", "UrbanOpen", 'CCFeat', 'DomStruct'))
+
+f4a <- ggplot(areas, aes(x=Ring, y=percentage, fill=LandUse)) + 
+    geom_area(alpha=0.6 , size=1, colour="black",stat="identity")+
+  scale_fill_manual(name="Land Use Classes", values = c("yellowgreen","tan","blue","firebrick"),
+                    labels=c("Rural Open", "Urban Open", "CC Features", "Domestic Structures"))+
+xlab("Concentric Ring") +
+  ylab("% Ring Area") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent) +#, limits=c(0,1)expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)
+  scale_x_continuous(expand = c(0, 0), limits=c(1,9),breaks=seq(1,9,1)) +
+  theme(legend.position = c(0.775, 0.75))+
+  theme(legend.title = element_text(size=12, face="bold"))+
+  theme(legend.text = element_text(size=10, face="bold"))+
+  theme(legend.background = element_rect(color=alpha('white', 0.5), fill=alpha('white', 0.5)))+
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
 f4a
 ```
+
+
+## Figure 4B
 
 ```{r include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
 #Estimate the model
@@ -266,6 +338,43 @@ exp_nls_fit <- nls.multstart::nls_multstart(PctRow_Area_ArchFeat ~ expfunc(MedRi
 
 pp5 = ModelPredFrame(exp_nls_fit,TeoRings,"MedRingDist","PctRow_Area_ArchFeat")
 
+```
+
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+f4b <- ggplot() +
+  geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.015, size=1) +
+  geom_line(data = TeoRings, aes(x=MedRingDist, y=PctRow_Area_CCFeat_AoD), inetype = "solid", color="blue", size=1.6) +
+  geom_point(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+  
+  #geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = PctCol_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.015, size=1) +
+  #geom_line(data = TeoRings, aes(x=MedRingDist, y=PctCol_Area_CCFeat_AoD), inetype = "solid", color="cyan3", size=1.6) +
+  #geom_point(data = TeoRings, aes(x = MedRingDist, y = PctCol_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+
+  geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_ArchFeat, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.015, size=1) +
+  geom_line(data = pp5, aes(x=MedRingDist, y=PctRow_Area_ArchFeat.p), inetype = "solid", color="purple", size=1.3) +
+  geom_point(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_ArchFeat, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+  
+  annotate("label", x = 2875, y = 0.62, label = "— Architectural Features  \n   (Land Use Intensity)   ", color ="purple", size=5, face = "bold")+
+  annotate("label", x = 2875, y = 0.50, label = "atop(bold(italic(PctArchFeat) == 0.825 * italic(e) ^ (-0.0008 * ~italic(Dist))),bold(italic(pseudo~R^2) == 0.988 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="purple3", size=4)+
+    
+  #annotate("label", x = 2875, y = 0.4, label = "— % of Total CC Feat Area", color ="cyan4", size=5, face = "bold")+
+  annotate("label", x = 2875, y = 0.4, label = "— Civic-Ceremonial Features", color ="blue", size=5, face = "bold")+
+    
+  xlab("Distance from Center (km)") +
+  ylab("% of Ring Area") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
+  #scale_y_continuous(expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)) +
+  scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000),
+                     labels=function(x)x/1000) +
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f4b
 ```
 
 
@@ -283,99 +392,8 @@ exp_nls_fit_results[[3]]
 ```
 
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
+## Figure 4C
 
-f4c <- ggplot() +
-  geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.015, size=1) +
-  geom_line(data = TeoRings, aes(x=MedRingDist, y=PctRow_Area_CCFeat_AoD), inetype = "solid", color="blue", size=1.6) +
-  geom_point(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
-  
-  #geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = PctCol_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.015, size=1) +
-  #geom_line(data = TeoRings, aes(x=MedRingDist, y=PctCol_Area_CCFeat_AoD), inetype = "solid", color="cyan3", size=1.6) +
-  #geom_point(data = TeoRings, aes(x = MedRingDist, y = PctCol_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
-
-  geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_ArchFeat, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.015, size=1) +
-  geom_line(data = pp5, aes(x=MedRingDist, y=PctRow_Area_ArchFeat.p), inetype = "solid", color="purple", size=1.3) +
-  geom_point(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_ArchFeat, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
-  
-  annotate("label", x = 2875, y = 0.62, label = "— Arch Features % of Ring Area", color ="purple", size=5, face = "bold")+
-  annotate("label", x = 2875, y = 0.51, label = "atop(bold(italic(PctArchFeat) == 0.825 * italic(e) ^ (-0.0008 * ~italic(Dist))),bold(italic(pseudo~R^2) == 0.988 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="purple3", size=4)+
-    
-  #annotate("label", x = 2875, y = 0.4, label = "— % of Total CC Feat Area", color ="cyan4", size=5, face = "bold")+
-  annotate("label", x = 2875, y = 0.4, label = "— CC Feat % of Ring Area", color ="blue", size=5, face = "bold")+
-    
-  xlab("Distance from Center (km)") +
-  ylab("% of Ring Area") +
-  theme_bw() +
-  scale_y_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
-  #scale_y_continuous(expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)) +
-  scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000),
-                     labels=function(x)x/1000) +
-  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
-  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
-  theme(axis.text = element_text(size = 12, color="black")) +
-  theme(axis.title.y = element_text(size = 14, face = "bold")) +
-  theme(axis.title.x = element_text(size = 14, face = "bold"))
-f4c
-```
-
-
-
-
-```{r}
-
-areas = data.frame("Ring"= TeoRings$Ring, "MedRingDist"= TeoRings$MedRingDist, "DomStruct" = (TeoRings$Area_DStr+TeoRings$DomPlat_Area), "CCFeat" = TeoRings$CCFeat_O_Area, "Open" = TeoRings$Area_OpenUnoccu)
-areas = areas %>% pivot_longer(3:5, names_to = "Land_Use", values_to = "Area") %>%
-  group_by(Ring, Land_Use) %>%
-  summarise(n = sum(Area)) %>%
-  mutate(percentage = n / sum(n))
-LandUse <- factor(areas$Land_Use, levels = c('Open', 'CCFeat', 'DomStruct'))
-
-f4b <- ggplot(areas, aes(x=Ring, y=percentage, fill=LandUse)) + 
-    geom_area(alpha=0.6 , size=1, colour="black",stat="identity")+
-  scale_fill_manual(name="Land Use Classes", values = c("yellowgreen","blue","firebrick"),
-                    labels=c("Open/Unoccupied", "CC Features", "Domestic Structures"))+
-xlab("Concentric Ring") +
-  ylab("% Ring Area") +
-  theme_bw() +
-  scale_y_continuous(labels = scales::percent) +#, limits=c(0,1)expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)
-  scale_x_continuous(expand = c(0, 0), limits=c(1,9),breaks=seq(1,9,1)) +
-  theme(legend.position = c(0.65, 0.65))+
-  theme(legend.title = element_text(size=14, face="bold"))+
-  theme(legend.text = element_text(size=12, face="bold"))+
-  theme(axis.text = element_text(size = 12, color="black")) +
-  theme(axis.title.y = element_text(size = 14, face = "bold")) +
-  theme(axis.title.x = element_text(size = 14, face = "bold"))
-f4b
-```
-
-```{r}
-
-areas = data.frame("Ring"= TeoRings$Ring, "MedRingDist"= TeoRings$MedRingDist, "DomStruct" = (TeoRings$Area_DStr+TeoRings$DomPlat_Area), "CCFeat" = TeoRings$CCFeat_O_Area, "UrbanOpen" = (TeoRings$Area_UrbanOpen + TeoRings$UnOccuFeat_Area), "RuralOpen" = TeoRings$Area_RuralOpen)
-areas = areas %>% pivot_longer(3:6, names_to = "Land_Use", values_to = "Area") %>%
-  group_by(Ring, Land_Use) %>%
-  summarise(n = sum(Area)) %>%
-  mutate(percentage = n / sum(n))
-LandUse <- factor(areas$Land_Use, levels = c("RuralOpen", "UrbanOpen", 'CCFeat', 'DomStruct'))
-
-f4b <- ggplot(areas, aes(x=Ring, y=percentage, fill=LandUse)) + 
-    geom_area(alpha=0.6 , size=1, colour="black",stat="identity")+
-  scale_fill_manual(name="Land Use Classes", values = c("yellowgreen","tan","blue","firebrick"),
-                    labels=c("Rural Open", "Urban Open", "CC Features", "Domestic Structures"))+
-xlab("Concentric Ring") +
-  ylab("% Ring Area") +
-  theme_bw() +
-  scale_y_continuous(labels = scales::percent) +#, limits=c(0,1)expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)
-  scale_x_continuous(expand = c(0, 0), limits=c(1,9),breaks=seq(1,9,1)) +
-  theme(legend.position = c(0.775, 0.75))+
-  theme(legend.title = element_text(size=12, face="bold"))+
-  theme(legend.text = element_text(size=10, face="bold"))+
-  theme(legend.background = element_rect(color=alpha('white', 0.5), fill=alpha('white', 0.5)))+
-  theme(axis.text = element_text(size = 12, color="black")) +
-  theme(axis.title.y = element_text(size = 14, face = "bold")) +
-  theme(axis.title.x = element_text(size = 14, face = "bold"))
-f4b
-```
 
 
 ```{r}
@@ -391,7 +409,7 @@ areas = areas %>% pivot_longer(2:5, names_to = "Status", values_to = "Area") %>%
   mutate(percentage = n / sum(n))
 Class <- factor(areas$Status, levels = c('High','Intermediate','Uncertain','Low'))
 
-f4d <- ggplot(areas, aes(x=Ring, y=percentage, fill=Class)) + 
+f4c <- ggplot(areas, aes(x=Ring, y=percentage, fill=Class)) + 
     geom_area(alpha=0.6 , size=1, colour="black",stat="identity")+
   scale_fill_manual(name="Class Status",values = c("green","yellow","orange","red"))+
 xlab("Concentric Ring") +
@@ -405,9 +423,54 @@ xlab("Concentric Ring") +
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
+f4c
+```
+
+## Figure 4D
+
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+Dareas = data.frame("MedRingDist"= TeoRings$MedRingDist,
+                    "MinRingDist"= TeoRings$MinRingDist,
+                    "MaxRingDist"= TeoRings$MaxRingDist,
+                    "Total" = TeoRings$Avg_Area_DStr,
+                   "High" = TeoRings$Avg_Elite_DStrArea, 
+                   "Intermediate" = TeoRings$Avg_IM_DStrArea, 
+                   "Uncertain" = TeoRings$Avg_UncerStat_DStrArea,
+                   "Low" = TeoRings$Med_Low_DStrArea *10
+                   )
+Dareas[5:9,5] <- NA
+Dareas[8:9,7] <- NA
+Dareas[1,7] <- NA
+Dareas = Dareas %>% pivot_longer(4:8, names_to = "Status2", values_to = "AvgDStrArea") 
+
+Class3 <- factor(Dareas$Status2, levels = c('Total', 'High','Intermediate','Uncertain','Low'))#'',
+
+
+f4d <- ggplot() +
+  #geom_errorbarh(data = Dareas, aes(x = MedRingDist, y = AvgDStrArea, xmin = MinRingDist, xmax = MaxRingDist),height=0.75, size=1) +
+  geom_line(data = Dareas, aes(x = MedRingDist, y = AvgDStrArea, color=Class3), size=1.5)+
+  scale_color_manual(name = "Avg DStr Area", values = c("black","green2","gold","darkorange", "red"), labels=c('Total', 'High','Intermediate','Uncertain', 'Low x 10'))+#"orange2",
+  geom_point(data = Dareas, aes(x = MedRingDist, y = AvgDStrArea), size=1.5, color="black", shape=16, stroke =2)+
+  xlab("Distance from Center (km)") +
+  ylab("Avg DStr Area (m^2)") +
+  theme_bw() +
+  scale_y_continuous(expand = c(0, 0), limits=c(0,3300),breaks=seq(0,3000,1000)) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
+  scale_x_continuous(expand = c(0, 0), limits=c(0,4600),breaks=seq(0,4000,1000),labels=function(x)x/1000) +
+  theme(legend.position = c(0.775, 0.775))+
+  theme(legend.title = element_text(size=12, face="bold"))+
+  theme(legend.text = element_text(size=11, face="bold"))+
+  theme(legend.spacing.y = unit(0.2, 'cm'))+
+  theme(legend.key = element_rect(colour = "transparent", fill = "transparent"))+
+  theme(legend.background = element_rect(fill="transparent", colour = "transparent"))+
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
 f4d
 ```
 
+
+## Plot Figure 4
 
 
 ```{r}
@@ -417,7 +480,7 @@ Fig4 <- plot_grid(f4a,f4b, f4c, f4d, labels = "AUTO", label_size = 30, hjust=0)
   #label_x = 1, label_y = 1
 Fig4
 
-ggsave("Fig4.png", plot = Fig4, device = "png", path = wd$figs, scale = 1, width = 10, height = 8,   units = "in",  dpi = 1000, bg = "white")
+ggsave("Fig4.png", plot = Fig4, device = "png", path = wd$figs, scale = 1, width = 10, height = 9,   units = "in",  dpi = 1000, bg = "white")
 
 rm(f4a, f4b, f4c, f4d, Fig4)
 ```
@@ -703,6 +766,60 @@ f6a
 
 
 
+
+
+
+
+
+```{r}
+Fig6 <- plot_grid(f6a, f6b, labels = "AUTO", label_size = 30, hjust=0)#f6c, f6d,
+
+
+Fig6
+
+
+ggsave("Fig6.png", plot = Fig6, device = "png", path = wd$figs, scale = 1, width = 10, height = 4,   units = "in",  dpi = 1000, bg = "white")
+
+
+
+
+
+
+rm(f6a, f6b, Fig6)
+```
+
+
+st_as_sf
+
+# SM Figs
+
+```{r}
+
+areas = data.frame("Ring"= TeoRings$Ring, "MedRingDist"= TeoRings$MedRingDist, "DomStruct" = (TeoRings$Area_DStr+TeoRings$DomPlat_Area), "CCFeat" = TeoRings$CCFeat_O_Area, "Open" = TeoRings$Area_OpenUnoccu)
+areas = areas %>% pivot_longer(3:5, names_to = "Land_Use", values_to = "Area") %>%
+  group_by(Ring, Land_Use) %>%
+  summarise(n = sum(Area)) %>%
+  mutate(percentage = n / sum(n))
+LandUse <- factor(areas$Land_Use, levels = c('Open', 'CCFeat', 'DomStruct'))
+
+f4a2 <- ggplot(areas, aes(x=Ring, y=percentage, fill=LandUse)) + 
+    geom_area(alpha=0.6 , size=1, colour="black",stat="identity")+
+  scale_fill_manual(name="Land Use Classes", values = c("yellowgreen","blue","firebrick"),
+                    labels=c("Open/Unoccupied", "CC Features", "Domestic Structures"))+
+xlab("Concentric Ring") +
+  ylab("% Ring Area") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent) +#, limits=c(0,1)expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)
+  scale_x_continuous(expand = c(0, 0), limits=c(1,9),breaks=seq(1,9,1)) +
+  theme(legend.position = c(0.65, 0.65))+
+  theme(legend.title = element_text(size=14, face="bold"))+
+  theme(legend.text = element_text(size=12, face="bold"))+
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f4a2
+```
+
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 Dareas = data.frame("MedRingDist"= TeoRings$MedRingDist,
                     "MinRingDist"= TeoRings$MinRingDist,
@@ -745,47 +862,6 @@ f6b
 
 
 
-
-```{r echo=FALSE,message=FALSE,warning=FALSE}
-Dareas = data.frame("MedRingDist"= TeoRings$MedRingDist,
-                    "MinRingDist"= TeoRings$MinRingDist,
-                    "MaxRingDist"= TeoRings$MaxRingDist,
-                    "Total" = TeoRings$Avg_Area_DStr,
-                   "High" = TeoRings$Avg_Elite_DStrArea, 
-                   "Intermediate" = TeoRings$Avg_IM_DStrArea, 
-                   "Uncertain" = TeoRings$Avg_UncerStat_DStrArea,
-                   "Low" = TeoRings$Med_Low_DStrArea *10
-                   )
-Dareas[5:9,5] <- NA
-Dareas[8:9,7] <- NA
-Dareas[1,7] <- NA
-Dareas = Dareas %>% pivot_longer(4:8, names_to = "Status2", values_to = "AvgDStrArea") 
-
-Class3 <- factor(Dareas$Status2, levels = c('Total', 'High','Intermediate','Uncertain','Low'))#'',
-
-
-f6b <- ggplot() +
-  #geom_errorbarh(data = Dareas, aes(x = MedRingDist, y = AvgDStrArea, xmin = MinRingDist, xmax = MaxRingDist),height=0.75, size=1) +
-  geom_line(data = Dareas, aes(x = MedRingDist, y = AvgDStrArea, color=Class3), size=1.5)+
-  scale_color_manual(name = "Avg DStr Area", values = c("black","green2","gold","darkorange", "red"), labels=c('Total', 'High','Intermediate','Uncertain', 'Low x 10'))+#"orange2",
-  geom_point(data = Dareas, aes(x = MedRingDist, y = AvgDStrArea), size=1.5, color="black", shape=16, stroke =2)+
-  xlab("Distance from Center (km)") +
-  ylab("Avg DStr Area (m^2)") +
-  theme_bw() +
-  scale_y_continuous(expand = c(0, 0), limits=c(0,3000),breaks=seq(0,3000,1000)) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
-  scale_x_continuous(expand = c(0, 0), limits=c(0,4600),breaks=seq(0,4000,1000),labels=function(x)x/1000) +
-  theme(legend.position = c(0.8, 0.8))+
-  theme(legend.title = element_text(size=12, face="bold"))+
-  theme(legend.text = element_text(size=10, face="bold"))+
-  theme(legend.spacing.y = unit(0.2, 'cm'))+
-  theme(legend.key = element_rect(colour = "transparent", fill = "transparent"))+
-  theme(legend.background = element_rect(fill="transparent", colour = "transparent"))+
-  theme(axis.text = element_text(size = 12, color="black")) +
-  theme(axis.title.y = element_text(size = 14, face = "bold")) +
-  theme(axis.title.x = element_text(size = 14, face = "bold"))
-f6b
-```
-
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 gini = data.frame("MedRingDist"= TeoRings$MedRingDist,
                     "MinRingDist"= TeoRings$MinRingDist,
@@ -822,34 +898,6 @@ f6c <- ggplot() +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
 f6c
 ```
-
-
-
-
-
-```{r}
-Fig6 <- plot_grid(f6a, f6b, f6c, f6c, labels = "AUTO", label_size = 30, hjust=0)#f6c, f6d,
-
-
-Fig6
-
-
-ggsave("Fig6.png", plot = Fig6, device = "png", path = wd$figs, scale = 1, width = 10, height = 8,   units = "in",  dpi = 1000, bg = "white")
-
-
-
-
-
-
-rm(f6a, f6b, f6c, f6d, Fig6)
-```
-
-
-st_as_sf
-
-# SM Figs
-
-
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 
