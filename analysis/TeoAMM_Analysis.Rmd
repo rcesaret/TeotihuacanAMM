@@ -503,6 +503,8 @@ xlab("Ring") +
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
+  
+## Figure 5A
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 
@@ -523,6 +525,10 @@ f5a <- ggplot(data = TeoRings, aes(x = PctRow_Area_CCStr, y = PctRow_DStrArea_El
   theme(axis.title.x = element_text(size = 14, face = "bold"))
 f5a
 ```
+
+
+## Figure 5B
+
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 TeoRings$PctRow_DStrArea_IMUncerStat = TeoRings$PctRow_DStrArea_UncerStat + TeoRings$PctRow_DStrArea_IM
@@ -555,7 +561,7 @@ f5b
 
 
 
-
+## Figure 5C
 
 
 ```{r Define simple power function, include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
@@ -573,13 +579,6 @@ pp3 = ModelPredFrame(pwr_nls_fit,TeoRings,"PctRow_Ring_DStrArea_Low","PctRow_Are
 
 
 
-```
-
-```{r}
-pwr_nls_fit_results = RegressionResultsTab(pwr_nls_fit, TeoRings, TeoRings$PctRow_Ring_DStrArea_Low, TeoRings$PctRow_Area_CCFeat_AoD, model_type="nls", coef="both", residplots=TRUE, residhists=TRUE)
-pwr_nls_fit_results[[1]]
-pwr_nls_fit_results[[2]]
-pwr_nls_fit_results[[3]]
 ```
 
 
@@ -606,34 +605,30 @@ f5c <- ggplot() +
 f5c
 ```
 
+### Full Regression Results
+
+
+```{r}
+pwr_nls_fit_results = RegressionResultsTab(pwr_nls_fit, TeoRings, TeoRings$PctRow_Ring_DStrArea_Low, TeoRings$PctRow_Area_CCFeat_AoD, model_type="nls", coef="both", residplots=TRUE, residhists=TRUE)
+pwr_nls_fit_results[[1]]
+pwr_nls_fit_results[[2]]
+pwr_nls_fit_results[[3]]
+```
+
+
+## Figure 5D
 
 
 ```{r Define simple power function, include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
-#logfunc <- function(PctRow_Area_CCFeat_AoD, b1, b2) {
-#  b1 * PctRow_Area_CCFeat_AoD + b2
-#}
-#pwr_nls_fit <- nls.multstart::nls_multstart(PctRow_Area_ArchFeat ~ pwrfunc(log(PctRow_Area_CCFeat_AoD), b1, b2),
-#                             data = TeoRings,
-#                             start_lower = c(b1=-10, b2=-10),
-#                             start_upper = c(b1=10, b2=10),
-#                             iter = 500,
-#                             supp_errors = "Y")
-
-#pp3 = ModelPredFrame(pwr_nls_fit,TeoRings,"PctRow_Area_CCFeat_AoD","PctRow_Area_ArchFeat")
-#pwr_nls_fit_results = RegressionResultsTab(pwr_nls_fit, TeoRings, log(TeoRings$PctRow_Area_CCFeat_AoD), #TeoRings$PctRow_Area_ArchFeat, model_type="nls", coef="both", residplots=TRUE, residhists=TRUE)
-
-#pwr_nls_fit_results[[1]]
-#pwr_nls_fit_results[[2]]
-#pwr_nls_fit_results[[3]]
 
 mod = lm(PctRow_Area_ArchFeat ~ log(PctRow_Area_CCFeat_AoD), TeoRings)
-summary(mod)
 pp31 = ModelPredFrame(mod,TeoRings,"PctRow_Area_CCFeat_AoD","PctRow_Area_ArchFeat")
-#mod_results = RegressionResultsTab(mod, TeoRings, log(TeoRings$PctRow_Area_CCFeat_AoD), TeoRings$PctRow_Area_ArchFeat, model_type="nls", coef="both", residplots=TRUE, residhists=TRUE)
-#mod_results[[3]]
+
 ```
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+
 
 f5d <- ggplot() +
   geom_point(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_Area_ArchFeat), size=2.5, color="black", shape=16, stroke =2)+
@@ -657,6 +652,20 @@ f5d
 ```
 
 
+### Full Regression Results
+
+
+```{r}
+lm_results = RegressionResultsTab(mod, TeoRings, log(TeoRings$PctRow_Area_CCFeat_AoD), TeoRings$PctRow_Area_ArchFeat, model_type="ols", coef="both", residplots=TRUE, residhists=TRUE)
+lm_results[[1]]
+lm_results[[2]]
+lm_results[[3]]
+```
+
+
+
+
+## Plot Figure 5
 
 ```{r}
 Fig5 <- plot_grid(f5a, f5b, f5c, f5d, labels = "AUTO", label_size = 30, hjust=0)
@@ -689,7 +698,7 @@ scales::rescale(c(142.1237,43.82432,9.37519568567026),c(1,2))
 
 Avg_DStrArea_perCapita
 
-# Figure 6
+# SM
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 
@@ -791,7 +800,6 @@ rm(f6a, f6b, Fig6)
 
 st_as_sf
 
-# SM Figs
 
 ```{r}
 
@@ -1218,261 +1226,3 @@ Sharper decreases in
 
 
 writeOGR(Teo_ArchPoly_Data, paste0(wd$data_f,"Teo_ArchPoly_Data.gpkg"), "Teo_ArchPoly_Data", driver = "GPKG", overwrite_layer=TRUE)
-# Gini
-
-
-
-$$
-A_{j}=\sum_{i=1}^{n} \left( \frac{W_{i}}{D_{ji}} \right)
-$$
-
-Teo_ArchPoly_Data@data %>% filter(XM_Low_bi == 1) %>% summarize(m = median(Area_m2)
-```{r}
-CentralLine <- readOGR(paste0(wd$data_r,"CentralLine.gpkg"))
-Teo_ArchPoly_Data <- readOGR(paste0(wd$data_f,"Teo_ArchPoly_Data.gpkg"))
-CentralLine.sf <- st_as_sf(CentralLine)
-Teo_ArchPoly_Data.sf <- st_as_sf(Teo_ArchPoly_Data)
-
-cen = st_centroid(Teo_ArchPoly_Data.sf)
-cen_sp <- as(cen, "Spatial")
-
-library(SpatialAcc)
-library(geodist)
-x = pointDistance(cen_sp@coords, lonlat = F, allpairs = T)
-rownames(x) <- cen_sp@data$ID
-colnames(x) <- Teo_ArchPoly_Data@data$ID
-z = Teo_ArchPoly_Data@data %>% select(ID,Area_m2,XM_group_f) %>% filter(XM_group_f == "AoD" | XM_group_f == "CCFeat")
-x2 = x[ , colnames(x) %in% z$ID]
-
-ac1 <- t(z$Area_m2/t(x2^1))
-ac1 <- apply(ac1, 1, sum)
-ac1 <- scales::rescale(ac1)
-#hist(ac1)
-
-ac2 <- t(z$Area_m2/t(x2^0.5))
-ac2 <- apply(ac2, 1, sum)
-ac2 <- scales::rescale(ac2)
-
-ac3 <- t(z$Area_m2/t(x2^0.33))
-ac3 <- apply(ac3, 1, sum)
-ac3 <- scales::rescale(ac3)
-
-ac4 <- t(z$Area_m2/t(x2^0.2))
-ac4 <- apply(ac4, 1, sum)
-ac4 <- scales::rescale(ac4)
-
-ac5 <- t(z$Area_m2/t(x2^1.5))
-ac5 <- apply(ac5, 1, sum)
-ac5 <- scales::rescale(ac5)
-
-cen$ac1 = ac1
-cen$ac2 = ac2
-cen$ac3 = ac3
-cen$ac4 = ac4
-cen$ac5 = ac5
-plot(cen["ac1"])
-
-cen$DistLine = as.numeric(st_distance(cen, CentralLine.sf))
-cen$InvDistLine = 1/cen$DistLine
-cen = cen %>% filter(XM_macro_DStr_bi == 1) %>% 
-  mutate(AreaPerPerson = ifelse(XM_High_bi == 1, 142.1237, ifelse(XM_Low_bi == 1, 8.027818, 43.82432)),###
-         #AreaPerPerson = ifelse(XM_High_bi == 1, 142.1237, ifelse(XM_Low_bi == 1, 9.3752, 43.82432)),
-         Wealth_Pop = XM_Pop*AreaPerPerson,
-         Wealth_Pop_perArea = XM_Pop*AreaPerPerson/Area_m2,
-         Wealth_Pop_div = AreaPerPerson/XM_Pop,
-         Wealth_Area = Area_m2*AreaPerPerson,
-         Wealth_Area_HH = Wealth_Area/XM_DwellingUnits,
-         Wealth_Area_Pers = Wealth_Area/XM_Pop,
-         PropVal_DStr_InvDist = InvDistLine*Area_m2,
-         PropVal_HH_InvDist = PropVal_DStr_InvDist/XM_DwellingUnits,
-         PropVal_Pers_InvDist = PropVal_DStr_InvDist/XM_Pop,###
-         PropVal_DStr_InvDistClass = InvDistLine*Area_m2*AreaPerPerson,
-         PropVal_HH_InvDistClass = PropVal_DStr_InvDistClass/XM_DwellingUnits,
-         PropVal_Pers_InvDistClass = PropVal_DStr_InvDistClass/XM_Pop,
-         PropVal_DStr_Acc = ac1*Area_m2,
-         PropVal_HH_Acc = PropVal_DStr_InvDistClass/XM_DwellingUnits,
-         PropVal_Pers_Acc = PropVal_DStr_InvDistClass/XM_Pop,
-         PropVal_DStr_AccClass = ac1*Area_m2*AreaPerPerson,
-         PropVal_HH_AccClass = PropVal_DStr_InvDistClass/XM_DwellingUnits,
-         PropVal_Pers_AccClass = PropVal_DStr_InvDistClass/XM_Pop)
-
-library(REAT)
-
-gini(cen$Area_m2, lc = TRUE, lsize = 2, le.col = "black", lc.col = "darkorange", lcx = "Cumulative Shares of Population (HH or DStr)", lcy = "Cumulative Shares of Wealth Proxies", lctitle = "Teotihuacan Gini Indicies for Wealth Proxies", lcg = TRUE, lcgn = F, lcg.caption =  "1) Domestic Structure (DStr) Area:", lcg.lab.x = 0, lcg.lab.y = 1)  
-gini(cen$PropVal_DStr_InvDist, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "firebrick", lcg = TRUE, lcgn = F, lcg.caption =  "2) DStr Property Value (PropVal):", lcg.lab.x = 0, lcg.lab.y = 0.875)
-gini(cen$PropVal_DStr_InvDistClass, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "purple", lcg = TRUE, lcgn = F, lcg.caption =  "3) DStr Class PropVal:", lcg.lab.x = 0, lcg.lab.y = 0.75) 
-gini(cen$PropVal_HH_InvDist, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "blue", lcg = TRUE, lcgn = F, lcg.caption =  "4) Household (HH) PropVal:", lcg.lab.x = 0, lcg.lab.y = 0.625)
-gini(cen$PropVal_HH_InvDistClass, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "green3", lcg = TRUE, lcgn = F, lcg.caption =  "5) HH Class PropVal:", lcg.lab.x = 0, lcg.lab.y = 0.5)
-gini(cen$Wealth_Area_HH, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "cyan3", lcg = TRUE, lcgn = F, lcg.caption =  "6) Wealth_Area_HH:", lcg.lab.x = 0, lcg.lab.y = 0.4)
-gini(cen$Wealth_Area_Pers, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "yellow2", lcg = TRUE, lcgn = F, lcg.caption =  "7) Wealth_Area_Pers:", lcg.lab.x = 0, lcg.lab.y = 0.3)
-gini(cen$Wealth_Area, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "grey50", lcg = TRUE, lcgn = F, lcg.caption =  "8) Wealth_Area:", lcg.lab.x = 0, lcg.lab.y = 0.2)
-gini(cen$PropVal_Pers_InvDist, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "red", lcg = TRUE, lcgn = F, lcg.caption =  "9) PropVal_Pers_InvDist:", lcg.lab.x = 0.5, lcg.lab.y = 1)
-gini(cen$PropVal_Pers_InvDistClass, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "pink", lcg = TRUE, lcgn = F, lcg.caption =  "10) PropVal_Pers_InvDistClass:", lcg.lab.x = 0.5, lcg.lab.y = 0.85)
-gini(cen$Wealth_Pop_div, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "orange", lcg = TRUE, lcgn = F, lcg.caption =  "11) Wealth_Pop_div:", lcg.lab.x = 0.5, lcg.lab.y = 0.75)
-#gini(cen$AreaPerPerson, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "red", lcg = TRUE, lcgn = TRUE, lcg.caption =  "Area per Person", lcg.lab.x = 0, lcg.lab.y = 0.85)  
-#gini(cen$Wealth_Area, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "blue", lcg = TRUE, lcgn = F, lcg.caption =  "Area per Person * Area:", lcg.lab.x = 0, lcg.lab.y = 0.9) 
-#gini(cen$Wealth_Pop, lc = TRUE, lsize = 1, add.lc = TRUE,  lc.col = "purple", lcg = TRUE, lcgn = TRUE, lcg.caption =  "Area per Person * Pop:", lcg.lab.x = 0, lcg.lab.y = 0.55)
-#ggsave("Ginis.png", plot = last_plot(), device = "png", path = wd$figs, scale = 1, width = 675, height = 675,   units = "px",  dpi = 1000, bg = "white")
-```
-
-PropVal_DStr_Acc = ac1*Area_m2,
-         PropVal_HH_Acc = PropVal_DStr_InvDistClass/XM_DwellingUnits,
-         PropVal_Pers_Acc = PropVal_DStr_InvDistClass/XM_Pop,
-         PropVal_DStr_AccClass = ac1*Area_m2*AreaPerPerson,
-         PropVal_HH_AccClass = PropVal_DStr_InvDistClass/XM_DwellingUnits,
-         PropVal_Pers_AccClass = PropVal_DStr_InvDistClass/XM_Pop
-
-
-```{r}
-gini(cen$Area_m2, lc = TRUE, lsize = 2, le.col = "black", lc.col = "darkorange", lcx = "Cumulative Shares of Population (HH or DStr)", lcy = "Cumulative Shares of Wealth Proxies", lctitle = "Teotihuacan Gini Indicies for Wealth Proxies", lcg = TRUE, lcgn = F, lcg.caption =  "1) Domestic Structure (DStr) Area:", lcg.lab.x = 0, lcg.lab.y = 1)  
-gini(cen$PropVal_DStr_Acc, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "firebrick", lcg = TRUE, lcgn = F, lcg.caption =  "2) PropVal_DStr_Acc:", lcg.lab.x = 0, lcg.lab.y = 0.875)
-gini(cen$PropVal_HH_Acc, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "purple", lcg = TRUE, lcgn = F, lcg.caption =  "3) PropVal_HH_Acc:", lcg.lab.x = 0, lcg.lab.y = 0.75) 
-gini(cen$PropVal_Pers_Acc, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "blue", lcg = TRUE, lcgn = F, lcg.caption =  "4) PropVal_Pers_Acc:", lcg.lab.x = 0, lcg.lab.y = 0.625)
-gini(cen$PropVal_DStr_AccClass, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "green3", lcg = TRUE, lcgn = F, lcg.caption =  "5) PropVal_DStr_AccClass:", lcg.lab.x = 0, lcg.lab.y = 0.5)
-gini(cen$PropVal_HH_AccClass, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "cyan3", lcg = TRUE, lcgn = F, lcg.caption =  "6) PropVal_HH_AccClass:", lcg.lab.x = 0, lcg.lab.y = 0.4)
-gini(cen$PropVal_Pers_AccClass, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "yellow2", lcg = TRUE, lcgn = F, lcg.caption =  "7) PropVal_Pers_AccClass:", lcg.lab.x = 0, lcg.lab.y = 0.3)
-
-```
-
-```{r}
-gini(cen$Area_m2, lc = TRUE, lsize = 2, le.col = "black", lc.col = "darkorange", lcx = "Cumulative Shares of Population (HH or DStr)", lcy = "Cumulative Shares of Wealth Proxies", lctitle = "Teotihuacan Gini Indicies for Wealth Proxies", lcg = TRUE, lcgn = F, lcg.caption =  "1) Domestic Structure (DStr) Area:", lcg.lab.x = 0, lcg.lab.y = 1)  
-gini(cen$ac1, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "firebrick", lcg = TRUE, lcgn = F, lcg.caption =  "2) ac1:", lcg.lab.x = 0, lcg.lab.y = 0.875)
-gini(cen$ac2, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "purple", lcg = TRUE, lcgn = F, lcg.caption =  "3) ac2:", lcg.lab.x = 0, lcg.lab.y = 0.75) 
-gini(cen$ac3, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "blue", lcg = TRUE, lcgn = F, lcg.caption =  "4) ac3:", lcg.lab.x = 0, lcg.lab.y = 0.625)
-gini(cen$ac4, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "green3", lcg = TRUE, lcgn = F, lcg.caption =  "5) ac4:", lcg.lab.x = 0, lcg.lab.y = 0.5)
-gini(cen$ac5, lc = TRUE, lsize = 2, add.lc = TRUE,  lc.col = "cyan3", lcg = TRUE, lcgn = F, lcg.caption =  "6) ac5:", lcg.lab.x = 0, lcg.lab.y = 0.4)
-
-
-```
-
-         
-```{r}
-cen2 = st_drop_geometry(cen)
-
-CenRings = cen2 %>% group_by(Ring_Oval) %>% summarize(
-  AreaPerPerson_Avg = mean(AreaPerPerson, na.rm=T),
-  AreaPerPerson_Tot = sum(AreaPerPerson, na.rm=T),
-  Wealth_Pop_Avg = mean(Wealth_Pop, na.rm=T),
-  Wealth_Pop_Tot = sum(Wealth_Pop, na.rm=T),
-  Wealth_Pop_perArea_Avg = mean(Wealth_Pop_perArea, na.rm=T),
-  Wealth_Pop_perArea_Tot = sum(Wealth_Pop_perArea, na.rm=T),
-  Wealth_Pop_div_Avg = mean(Wealth_Pop_div, na.rm=T),
-  Wealth_Pop_div_Tot = sum(Wealth_Pop_div, na.rm=T),
-  Wealth_Area_Avg = mean(Wealth_Area, na.rm=T),
-  Wealth_Area_Tot = sum(Wealth_Area, na.rm=T),
-  Wealth_Area_HH_Avg = mean(Wealth_Area_HH, na.rm=T),
-  Wealth_Area_HH_Tot = sum(Wealth_Area_HH, na.rm=T),
-  Wealth_Area_Pers_Avg = mean(Wealth_Area_Pers, na.rm=T),
-  Wealth_Area_Pers_Tot = sum(Wealth_Area_Pers, na.rm=T),
-  PropVal_DStr_InvDist_Avg = mean(PropVal_DStr_InvDist, na.rm=T),
-  PropVal_DStr_InvDist_Tot = sum(PropVal_DStr_InvDist, na.rm=T),
-  PropVal_HH_InvDist_Avg = mean(PropVal_HH_InvDist, na.rm=T),
-  PropVal_HH_InvDist_Tot = sum(PropVal_HH_InvDist, na.rm=T),
-  PropVal_Pers_InvDist_Avg = mean(PropVal_Pers_InvDist, na.rm=T),
-  PropVal_Pers_InvDist_Tot = sum(PropVal_Pers_InvDist, na.rm=T),
-  PropVal_DStr_InvDistClass_Avg = mean(PropVal_DStr_InvDistClass, na.rm=T),
-  PropVal_DStr_InvDistClass_Tot = sum(PropVal_DStr_InvDistClass, na.rm=T),
-  PropVal_HH_InvDistClass_Avg = mean(PropVal_HH_InvDistClass, na.rm=T),
-  PropVal_HH_InvDistClass_Tot = sum(PropVal_HH_InvDistClass, na.rm=T),
-  PropVal_Pers_InvDistClass_Avg = mean(PropVal_Pers_InvDistClass, na.rm=T),
-  PropVal_Pers_InvDistClass_Tot = sum(PropVal_Pers_InvDistClass, na.rm=T),
-  PropVal_DStr_Acc_Avg = mean(PropVal_DStr_Acc, na.rm=T),
-  PropVal_DStr_Acc_Tot = sum(PropVal_DStr_Acc, na.rm=T),
-  PropVal_HH_Acc_Avg = mean(PropVal_HH_Acc, na.rm=T),
-  PropVal_HH_Acc_Tot = sum(PropVal_HH_Acc, na.rm=T),
-  PropVal_Pers_Acc_Avg = mean(PropVal_Pers_Acc, na.rm=T),
-  PropVal_Pers_Acc_Tot = sum(PropVal_Pers_Acc, na.rm=T),
-  PropVal_DStr_AccClass_Avg = mean(PropVal_DStr_AccClass, na.rm=T),
-  PropVal_DStr_AccClass_Tot = sum(PropVal_DStr_AccClass, na.rm=T),
-  PropVal_HH_AccClass_Avg = mean(PropVal_HH_AccClass, na.rm=T),
-  PropVal_HH_AccClass_Tot = sum(PropVal_HH_AccClass, na.rm=T),
-  PropVal_Pers_AccClass_Avg = mean(PropVal_Pers_AccClass, na.rm=T),
-  PropVal_Pers_AccClass_Tot = sum(PropVal_Pers_AccClass, na.rm=T)
-) %>% mutate(InvDist = 1/seq(250,(500*9)-250,by=500))
-
-#plot(CenRings$InvDist,CenRings$Wealth_Area_Avg)
-
-write.csv(CenRings, paste0(wd$data_f,"CenRings3.csv"))
-```
-
-
-
-
-```{r include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
-expfunc <- function(InvDistLine, b1, b2) {
-  b1 * exp( b2 * InvDistLine )
-}
-pwrfunc <- function(InvDistLine, b1, b2) {
-  b1 * InvDistLine^b2
-}
-
-
-cen3 = cen2 %>% filter(XM_Low_bi == 0)
-
-#Estimate the model
-exp_nls_fit <- nls.multstart::nls_multstart(Wealth_Pop ~ expfunc(InvDistLine, b1, b2),
-                             data = cen3,
-                             start_lower = c(b1=2000, b2=-10000),
-                             start_upper = c(b1=10000, b2=0),
-                             iter = 500,
-                             supp_errors = "Y")
-
-pwr_nls_fit <- nls.multstart::nls_multstart(Wealth_Pop ~ pwrfunc(InvDistLine, b1, b2),
-                             data = cen3,
-                             #start_lower = c(b1=2000, b2=-10000),
-                             #start_upper = c(b1=10000, b2=0),
-                             iter = 3000,
-                             supp_errors = "Y")
-
-pp4 = ModelPredFrame(exp_nls_fit,cen3,"InvDistLine","Wealth_Pop")
-pp4b = ModelPredFrame(pwr_nls_fit,cen3,"InvDistLine","Wealth_Pop")
-
-pwr_nls_fit_results = RegressionResultsTab(pwr_nls_fit, cen3, cen3$InvDistLine, cen3$Wealth_Pop, model_type="nls", coef="both", residplots=TRUE, residhists=TRUE)
-
-exp_nls_fit_results = RegressionResultsTab(exp_nls_fit, cen3, cen3$InvDistLine, cen3$Wealth_Pop, model_type="nls", coef="both", residplots=TRUE, residhists=TRUE)
-
-pwr_nls_fit_results[[1]]
-pwr_nls_fit_results[[2]]
-pwr_nls_fit_results[[3]]
-exp_nls_fit_results[[1]]
-exp_nls_fit_results[[2]]
-exp_nls_fit_results[[3]]
-
-```
-
-
-
-InvDistLine, cen3$Wealth_Pop
-```{r echo=FALSE,message=FALSE,warning=FALSE}
-
-ggplot() +
-  geom_point(data = cen3, aes(x = (InvDistLine), y = (Wealth_Pop)), size=2.5, color="black", shape=16, stroke =2)+
-  #geom_smooth(method = lm, se = FALSE,color="green3", size=1.3)
-  geom_line(data = pp4b, aes(x=InvDistLine, y=Wealth_Pop.p), inetype = "solid", color="red", size=1.3) +
-  #geom_text_repel(data = TeoRings, aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=4,direction="y", fontface="bold", nudge_y=2, point.size=5) +#box.padding=1, 
-  #geom_text_repel(box.padding=1,size=5,fontface="bold", nudge_y=1.5) +# 
-
-
-  #geom_point(data = TeoRings %>% filter(Ring > 1), aes(x = MedRingDist, y = Popdens_TOT, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
-  #geom_point(data = TeoRings %>% filter(Ring < 2), aes(x = MedRingDist, y = Popdens_TOT), size=3, color="red2", shape=4, stroke =2)+
-  #annotate("label", x = 0.15, y = 0.8, label = "atop(bold(italic(PctOpen) == 0.914 * ~italic(PctCCFeat) ^ (-5.388)),bold(italic(pseudo~R^2) == 0.771 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="black", size=4)+
-  #ggtitle("Total Population Density Gradient for 500-meter Concentric Rings", subtitle= "Teotihuacan, Xolalpan-Metepec Phase (c. AD 350-600)") +
-  #xlab("Percent CC Feature Area in Ring") +
-  #ylab("Percent Open Area in Ring") +
-  theme_bw() + coord_trans(x="log2", y="log2")+
-  #scale_y_continuous(labels = scales::percent, limits=c(0.3,1), breaks=seq(0.4,1,0.2)) +
-  #scale_x_continuous(labels = scales::percent, limits=c(0,0.25), breaks=seq(0,0.25,0.05)) +
-  #scale_y_continuous(expand = c(0, 0), ,) +
-  #scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000)) +
-  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
-  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
-  theme(axis.text = element_text(size = 12, color="black")) +
-  theme(axis.title.y = element_text(size = 14, face = "bold")) +
-  theme(axis.title.x = element_text(size = 14, face = "bold"))
-
-```
-
-
-
-
-
