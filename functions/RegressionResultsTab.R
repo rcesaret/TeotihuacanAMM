@@ -156,16 +156,16 @@ RegressionResultsTab <- function(model,
     # overall results
     s = summary(model)
     n = length(model$m$resid())
-    RSS.p <- sum(model$m$resid()^2)
+    RSS <- sum(model$m$resid()^2)
     TSS <- sum((y - mean(y))^2)
-    pseudoR2 = 1 - (RSS.p/TSS)
+    R2 = 1 - (RSS/TSS)
     resid_se = s$sigma
     model_results <- data.frame(matrix(ncol = 0, nrow = 1))
     model_results$formula <- paste(summary(model)$formula[2], summary(model)$formula[1], summary(model)$formula[3])
     model_results$n <- n
     model_results$df <- s$df[2]
-    model_results$pseudoR2 <- pseudoR2
-    model_results$peudoRSS <- RSS.p
+    model_results$R2 <- R2
+    model_results$RSS <- RSS
     model_results$TSS <- TSS
     model_results$resid_se <- resid_se
     model_results$ConvergToler <- s$convInfo$finTol

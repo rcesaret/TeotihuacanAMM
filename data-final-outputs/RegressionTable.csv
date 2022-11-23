@@ -1,0 +1,25 @@
+"","Figure 3B","Figure 4B","Figure 5A","Figure 5B-1","Figure 5B-2","Figure 5C","Figure 5D"
+"X","Median Distance","Median Distance","Log CC Feat % Ring Area","CC Feat % Ring Area","CC Feat % Ring Area","Log CC Feat % Ring Area","Log CC Feat % Ring Area"
+"Y","Population Density","Arch Feat % Row Area","Log High Stat % DStr Area","IM Stat % DStr Area","IM+Uncert Stat % DStr Area","Log Low Stat % DStr","Arch Feat % Area"
+"Form","Exponential","Exponential","Log-Log","Linear","Linear","Log-Log","Log-X"
+"Equation","Y = b1 e^(b2*X)","Y = b1 e^(b2*X)","log(Y) = b2*log(X) + b1","Y = b2*X + b1","Y = b2*X + b1","log(Y) = b2*log(X) + b1","X = b2*log(Y) + b1"
+"Est. Method","NLS","NLS","OLS","OLS","OLS","OLS","OLS"
+"R^2","0.978","0.988","0.985","0.938","0.98","0.814","0.819"
+"n_rings","8","9","6","9","9","9","9"
+"n_total","2871 (DStr)","4460 (ArchFeat)","501 (CCStr); 289 (High DStr)","531 (CCFeat); 1941 (IM DStr)","531 (CCFeat); 2152 (IM+Uncert DStr)","531 (CCStr); 826 (Low DStr)","531 (CCStr); 4460 (Arch Feat)"
+"b1 (p)","131.818
+(p < 1e-05)","0.826
+(p < 8.12e-08)","1.2529
+(p < 0.0215)","0.88
+(p < 2.4194e-11)","0.9792
+(p < 9.55e-13)","-4.4096
+(p < 1e-04)","0.8475
+(p < 2e-04)"
+"b2 (p)","-6e-04
+(p < 9e-07)","-8e-04
+(p < 8e-07)","1.2552
+(p < 1e-04)","-1.5493
+(p < 1.771e-05)","-1.9505
+(p < 3.4e-07)","-0.6839
+(p < 9e-04)","0.144
+(p < 8e-04)"

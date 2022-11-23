@@ -128,7 +128,11 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
   
   Teo_Rings_Ineq = Teo_Rings_Ineq[,-1]
   ## Summarize Data By Ring
-  
+  Arch <- PolyData@data %>%
+    group_by(!!sym(RingVersion)) %>%
+    summarise(
+      ArchFeat_TOT = n(),
+      ArchFeat_Area = sum(Area_m2, na.rm=T)* 0.0001)
   
   Teo_Rings <- PolyData@data %>%
     group_by(!!sym(RingVersion)) %>%
@@ -219,11 +223,13 @@ CalcRingData = function(PolyData, # = Teo_Poly_Data
   Pop_TOT = Teo_Rings$Pop_TOT
   DStr_TOT = Teo_Rings$DStr_TOT
   Area_DStr = Teo_Rings$Area_DStr
+  ArchFeat_TOT = Arch$ArchFeat_TOT
+  ArchFeat_Area = Arch$ArchFeat_Area
   Avg_Area_DStr = Area_DStr / DStr_TOT * 10000
   Med_Area_DStr = Med_DStrArea
   Avg_OccuDens = Pop_TOT / Area_DStr * 10000
   Avg_DStrArea_perCapita = Area_DStr * 10000 / Pop_TOT
-  Ring_Data <- data.frame(Ring,MinRingDist,MedRingDist,MaxRingDist,Ring_Area,Pop_TOT,Popdens_TOT,DStr_TOT,Area_DStr,Avg_Area_DStr, Med_Area_DStr,Avg_OccuDens, Avg_DStrArea_perCapita)
+  Ring_Data <- data.frame(Ring,MinRingDist,MedRingDist,MaxRingDist,Ring_Area,Pop_TOT,Popdens_TOT,DStr_TOT,Area_DStr,Avg_Area_DStr, Med_Area_DStr,Avg_OccuDens, Avg_DStrArea_perCapita, ArchFeat_TOT,ArchFeat_Area)
   Next <- Teo_Rings[,c(5:28)]
   Elite <- Teo_Rings[,c(29:34)]
   IM <- Teo_Rings[,c(35:40)]
