@@ -238,7 +238,7 @@ f3b <- ggplot() +
    geom_point(data = TeoRings, aes(x = MedRingDist, y = Popdens_BuiltUp, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
   geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = Popdens_BuiltUp, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=1.5, size=1) +
   #annotate("label", x = 3000, y = 70, label = "atop(bold(italic(PopDens) == 131.8 * italic(e) ^ (-0.00064 * ~italic(Dist))),bold(italic(R^2) == 0.978 ~~~~~~ italic(n) == 8 ))", parse = TRUE, color ="black", size=5)+
-  annotate("label", x = 3000, y = 60, label = "Population Density", color ="firebrick", size=5)+
+  #annotate("label", x = 3000, y = 60, label = "Population Density", color ="firebrick", size=5)+
   xlab("Distance from Center (km)") +
   ylab("Population Density (per ha)") +
   theme_bw() +
@@ -275,6 +275,7 @@ results_f3b[[3]]
 
 ```{r}
 Fig3 <- plot_grid(map,f3b, labels = "AUTO", label_size = 40, hjust=0)
+
 
 Fig3
 
@@ -331,7 +332,7 @@ xlab("Concentric Ring") +
 f4a
 ```
 
-
+## Figure 4B
 
 ```{r include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
 #Estimate the model
@@ -357,24 +358,39 @@ paste0(round(results_f4b[[2]]$estimate[[2]],4),"\n(p < ",round(results_f4b[[2]]$
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 
+predict_f4b$Series <- "All Architectural Features"
+names(predict_f4b) <- c("X","Y","Series")
+tmp=TeoRings %>% dplyr::select(MedRingDist,PctRow_Area_CCFeat_AoD)
+tmp$Series <- "Civic-Ceremonial Features"
+names(tmp) <- c("X","Y","Series")
+predict_f4b = rbind(predict_f4b,tmp)
+
+f4bfactor <- factor(predict_f4b$Series, levels = c("All Architectural Features", "Civic-Ceremonial Features"))
+
+
+
 f4b <- ggplot() +
   geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.015, size=1) +
-  geom_line(data = TeoRings, aes(x=MedRingDist, y=PctRow_Area_CCFeat_AoD), inetype = "solid", color="blue", size=1.6) +
+  geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_ArchFeat, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.015, size=1) +
+  geom_point(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_ArchFeat, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
+  geom_line(data = predict_f4b, aes(x=X, y=Y, color=f4bfactor), inetype = "solid", size=1.3) +
+  scale_color_manual(name = "", values = c("purple","blue"), labels=c("All Architectural Features\n(Land Use Intensity)", "Civic-Ceremonial Features"))+
+  #geom_line(data = TeoRings, aes(x=MedRingDist, y=PctRow_Area_CCFeat_AoD), inetype = "solid", color="blue", size=1.6) +
   geom_point(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
   
   #geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = PctCol_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.015, size=1) +
   #geom_line(data = TeoRings, aes(x=MedRingDist, y=PctCol_Area_CCFeat_AoD), inetype = "solid", color="cyan3", size=1.6) +
   #geom_point(data = TeoRings, aes(x = MedRingDist, y = PctCol_Area_CCFeat_AoD, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
 
-  geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_ArchFeat, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=0.015, size=1) +
-  geom_line(data = predict_f4b, aes(x=MedRingDist, y=PctRow_Area_ArchFeat.p), inetype = "solid", color="purple", size=1.3) +
-  geom_point(data = TeoRings, aes(x = MedRingDist, y = PctRow_Area_ArchFeat, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
   
-  annotate("label", x = 2875, y = 0.62, label = "— Architectural Features  \n   (Land Use Intensity)   ", color ="purple", size=5, face = "bold")+
+  #geom_line(data = predict_f4b, aes(x=MedRingDist, y=PctRow_Area_ArchFeat.p), inetype = "solid", color="purple", size=1.3) +
+  
+  
+  #annotate("label", x = 2875, y = 0.62, label = "— Architectural Features  \n   (Land Use Intensity)   ", color ="purple", size=5, face = "bold")+
   #annotate("label", x = 2875, y = 0.50, label = "atop(bold(italic(PctArchFeat) == 0.825 * italic(e) ^ (-0.0008 * ~italic(Dist))),bold(italic(pseudo~R^2) == 0.988 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="purple3", size=4)+
     
   #annotate("label", x = 2875, y = 0.4, label = "— % of Total CC Feat Area", color ="cyan4", size=5, face = "bold")+
-  annotate("label", x = 2875, y = 0.4, label = "— Civic-Ceremonial Features", color ="blue", size=5, face = "bold")+
+  #annotate("label", x = 2875, y = 0.4, label = "— Civic-Ceremonial Features", color ="blue", size=5, face = "bold")+
     
   xlab("Distance from Center (km)") +
   ylab("% of Ring Area") +
@@ -385,6 +401,11 @@ f4b <- ggplot() +
                      labels=function(x)x/1000) +
   theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
   theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(legend.position = c(0.6, 0.7))+
+  theme(legend.title = element_blank())+
+  theme(legend.text = element_text(size=12, face="bold"))+
+  theme(legend.key = element_rect(colour = "transparent", fill = "transparent"))+
+  theme(legend.background = element_rect(fill="transparent", colour = "transparent"))+
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
@@ -434,6 +455,7 @@ xlab("Concentric Ring") +
   theme(legend.position = c(0.75, 0.65))+
   theme(legend.title = element_text(size=14, face="bold"))+
   theme(legend.text = element_text(size=12, face="bold"))+
+  theme(legend.background = element_rect(color=alpha('white', 0.5), fill=alpha('white', 0.5)))+
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
@@ -464,7 +486,7 @@ Class3 <- factor(Dareas$Status2, levels = c('Total', 'High','Intermediate','Unce
 f4d <- ggplot() +
   #geom_errorbarh(data = Dareas, aes(x = MedRingDist, y = AvgDStrArea, xmin = MinRingDist, xmax = MaxRingDist),height=0.75, size=1) +
   geom_line(data = Dareas, aes(x = MedRingDist, y = AvgDStrArea, color=Class3), size=1.5)+
-  scale_color_manual(name = "Avg DStr Area", values = c("black","green2","gold","darkorange", "red"), labels=c('Total', 'High','Intermediate','Uncertain', 'Low x 10'))+#"orange2",
+  scale_color_manual(values = c("black","green2","gold","darkorange", "red"), labels=c('Total', 'High','Intermediate','Uncertain', 'Low x 10'))+#"orange2",name = "Avg DStr Area",
   geom_point(data = Dareas, aes(x = MedRingDist, y = AvgDStrArea), size=1.5, color="black", shape=16, stroke =2)+
   xlab("Distance from Center (km)") +
   ylab("Avg DStr Area (m^2)") +
@@ -472,7 +494,7 @@ f4d <- ggplot() +
   scale_y_continuous(expand = c(0, 0), limits=c(0,3300),breaks=seq(0,3000,1000)) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
   scale_x_continuous(expand = c(0, 0), limits=c(0,4600),breaks=seq(0,4000,1000),labels=function(x)x/1000) +
   theme(legend.position = c(0.775, 0.775))+
-  theme(legend.title = element_text(size=12, face="bold"))+
+  theme(legend.title = element_blank())+
   theme(legend.text = element_text(size=11, face="bold"))+
   theme(legend.spacing.y = unit(0.2, 'cm'))+
   theme(legend.key = element_rect(colour = "transparent", fill = "transparent"))+
@@ -543,13 +565,14 @@ f5a <- ggplot() +
   geom_line(data = predict_f5a, aes(x=Log_PctRow_Area_CCFeat_AoD, y=Log_PctRow_DStrArea_Elite.p), inetype = "solid", color="green3", size=1.3) +
   #geom_smooth(method = lm, se = FALSE,color="green3", size=1.3)+
   #annotate("label", x = 0.065, y = 0.4, label = "atop(bold(italic(PctHigh) == 0.39 * ~italic(PctCCFeat) + 0.005),bold(italic(R^2) == 0.998 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="green4", size=4)+
-  annotate("label", x = 0.065, y = 0.46, label = "High Status", color ="green3", size=5)+
+  #annotate("label", x = 0.065, y = 0.46, label = "High Status", color ="green3", size=5)+
+  ggtitle("\nHigh Status Residencies")+
   xlab("CC Feat % Ring Area") +
   ylab("% Ring DStr Area") +
   theme_bw() +
   scale_y_continuous(labels = scales::percent) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
   scale_x_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
-  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5, color="green4")) +
   theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
@@ -609,31 +632,45 @@ paste0(round(results_f5b2[[2]]$estimate[[2]],4),"\n(p < ",round(results_f5b2[[2]
 ```
 
 
-
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
+predict_f5b2$Series <- "Intermediate + Uncertain Status"
+predict_f5b1$Series <- "Intermediate Status"
+names(predict_f5b1) <- c("X","Y","Series")
+names(predict_f5b2) <- c("X","Y","Series")
+predict_f5b = rbind(predict_f5b1,predict_f5b2)
 
+f5bfactor <- factor(predict_f5b$Series, levels = c("Intermediate Status", "Intermediate + Uncertain Status"))
 
 
 f5b <- ggplot() +
-  geom_point(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_DStrArea_IMUncerStat), size=2.5, color="orange4", shape=16, stroke =2)+
-  geom_line(data = predict_f5b2, aes(x=PctRow_Area_CCFeat_AoD, y=PctRow_DStrArea_IMUncerStat.p), inetype = "solid", color="darkorange", size=1.3) +
+  geom_point(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_DStrArea_IMUncerStat), size=2.5, color="orange3", shape=16, stroke =2)+
+  geom_point(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_DStrArea_IM), size=2.5, color="gold2", shape=16, stroke =2)+
+  #geom_line(data = predict_f5b, aes(x=PctRow_Area_CCFeat_AoD, y=PctRow_DStrArea_IM.p), inetype = "solid", color="yellow3", size=1.3) +
+  
+  geom_line(data = predict_f5b, aes(x=X, y=Y, color=f5bfactor), inetype = "solid", size=1.3) +
+  scale_color_manual(name = "", values = c("yellow3","darkorange"), labels=c("Intermediate Status", "Intermediate + Uncertain Status"))+
   #geom_smooth(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_DStrArea_IMUncerStat), method = lm, se = FALSE,color="darkorange", size=1.3)+
   #annotate("label", x = 0.155, y = 0.915, label = "atop(bold(italic(PctIMU) == -1.95 * ~italic(PctCCFeat) + 0.98),bold(italic(R^2) == 0.98 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="orange4", size=4)+
-  annotate("label", x = 0.155, y = 0.975, label = "Intermediate + Uncertain Status", color ="darkorange", size=5)+
+  #annotate("label", x = 0.155, y = 0.975, label = "Intermediate + Uncertain Status", color ="darkorange", size=5)+
   
-  geom_point(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_DStrArea_IM), size=2.5, color="gold2", shape=16, stroke =2)+
+  
   #geom_smooth(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_DStrArea_IM), method = lm, se = FALSE,color="yellow3", size=1.3)+
-  geom_line(data = predict_f5b1, aes(x=PctRow_Area_CCFeat_AoD, y=PctRow_DStrArea_IM.p), inetype = "solid", color="yellow3", size=1.3) +
-  #annotate("label", x = 0.08, y = 0.55, label = "atop(bold(italic(PctIM) == -1.55 * ~italic(PctCCFeat) + 0.88),bold(italic(R^2) == 0.938 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="yellow4", size=4)+
-  annotate("label", x = 0.08, y = 0.615, label = "Intermediate Status", color ="yellow3", size=5)+
   
+  #annotate("label", x = 0.08, y = 0.55, label = "atop(bold(italic(PctIM) == -1.55 * ~italic(PctCCFeat) + 0.88),bold(italic(R^2) == 0.938 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="yellow4", size=4)+
+  #annotate("label", x = 0.08, y = 0.615, label = "Intermediate Status", color ="yellow3", size=5)+
+  ggtitle("\nIntermediate Status Residencies")+
   xlab("CC Feat % Ring Area") +
   ylab("% Ring DStr Area") +
   theme_bw() +
   scale_y_continuous(labels = scales::percent) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
   scale_x_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
-  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5, color="gold3")) +
   theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(legend.position = c(0.6, 0.9))+
+  theme(legend.title = element_blank())+
+  theme(legend.text = element_text(size=12, face="bold"))+
+  theme(legend.key = element_rect(colour = "transparent", fill = "transparent"))+
+  theme(legend.background = element_rect(fill="transparent", colour = "transparent"))+
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
@@ -692,8 +729,9 @@ paste0(round(results_f5c[[2]]$estimate[[2]],4),"\n(p < ",round(results_f5c[[2]]$
 f5c <- ggplot() +
   geom_point(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_Ring_DStr_Low), size=2.5, color="black", shape=16, stroke =2)+
   geom_line(data = predict_f5c, aes(x=Log_PctRow_Area_CCFeat_AoD, y=Log_PctRow_Ring_DStr_Low.p), inetype = "solid", color="red", size=1.3) +
-  annotate("label", x = 0.125, y = 0.4, label = "Low Status", color ="red", size=5)+
+  #annotate("label", x = 0.125, y = 0.4, label = "Low Status", color ="red", size=5)+
   #annotate("label", x = 0.125, y = 0.04, label = "atop(bold(italic(PctCCFeat) == 0.00000679 ~italic(PctLow) ^ -1.47),bold(italic(pseudo~R^2) == 0.995 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="firebrick", size=4)+
+  ggtitle("\nLow Status Residencies")+
   xlab("CC Feat % Ring Area") +
   ylab("% Ring DStr") +
   theme_bw() +
@@ -701,7 +739,7 @@ f5c <- ggplot() +
   scale_x_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
   #scale_y_continuous(expand = c(0, 0), ,) +
   #scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000)) +
-  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5,color="red3")) +
   theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
@@ -753,8 +791,9 @@ paste0(round(results_f5d[[2]]$estimate[[2]],4),"\n(p < ",round(results_f5d[[2]]$
 f5d <- ggplot() +
   geom_point(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_Area_ArchFeat), size=2.5, color="black", shape=16, stroke =2)+
   geom_line(data = predict_f5d, aes(x=Log_PctRow_Area_CCFeat_AoD, y=PctRow_Area_ArchFeat.p), inetype = "solid", color="purple", size=1.3) +
-  annotate("label", x = 0.125, y = 0.26, label = "All Architectural Features", color ="purple", size=5)+
+  #annotate("label", x = 0.125, y = 0.26, label = "All Architectural Features", color ="purple", size=5)+
   #annotate("label", x = 0.125, y = 0.17, label = "atop(bold(italic(PctArchFeat) == 0.144 ~italic(PctCCFeat) + 0.847),bold(italic(R^2) == 0.819 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="purple3", size=4)+
+  ggtitle("\nAll Architectural Features")+
   xlab("CC Feat % Ring Area") +
   ylab("Arch Feat % Ring Area  ") +
   theme_bw() +
@@ -762,7 +801,7 @@ f5d <- ggplot() +
   scale_x_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
   #scale_y_continuous(expand = c(0, 0), ,) +
   #scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000)) +
-  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
+  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5,color="purple3")) +
   theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
@@ -788,7 +827,7 @@ results_f5d[[3]]
 ## Plot Figure 5
 
 ```{r}
-Fig5 <- plot_grid(f5a, f5b, f5c, f5d, labels = "AUTO", label_size = 30, hjust=0)
+Fig5 <- plot_grid(f5a, f5b, f5c, f5d, labels = "AUTO", label_size = 30, hjust=-1)
 
 
 Fig5
