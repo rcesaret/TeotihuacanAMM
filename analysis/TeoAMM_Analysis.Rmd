@@ -97,7 +97,9 @@ RingsPoly <- invisible(readOGR(paste0(wd$data_r,"RingsPoly_Oval.gpkg")))
 TMP_MapPoly <- invisible(readOGR(paste0(wd$data_r,"TMP_Map_Poly_Extent.gpkg")))
 
 #UrbanOpenPoly <- invisible(readOGR(paste0(wd$data_r,"UrbanOpenPoly.gpkg")))
-RuralOpenPoly <- invisible(readOGR(paste0(wd$data_r,"RuralOpenPoly.gpkg")))
+#RuralOpenPoly <- invisible(readOGR(paste0(wd$data_r,"RuralOpenPoly.gpkg")))
+TeoUrbanBorder <- invisible(readOGR(paste0(wd$data_r,"TeoUrbanBorder.gpkg")))
+TeoUrbanBorder_Inverse <- invisible(readOGR(paste0(wd$data_r,"TeoUrbanBorder_Inverse.gpkg")))
 
 RegressionTable <- data.frame("Figure"=c("X","Y","Form","Equation","Est. Method","R^2","n_rings","n_total","b1 (p)","b2 (p)"), row.names = c("X","Y","Form","Equation","Est. Method","R^2","n_rings","n_total","b1 (p)","b2 (p)"))
 RegressionTable <- RegressionTable[,-1]
@@ -110,15 +112,17 @@ RegressionTable <- RegressionTable[,-1]
 # Figure 3
 
 ```{r}
-distm <- 250
+distm <- 125#250
+
 cents = gCentroid(Teo_ArchPoly_Data, byid=T)
+
 Teo_ArchPts_Data = SpatialPointsDataFrame(Teo_ArchPoly_Data@data, coords=cents@coords, bbox=Teo_ArchPoly_Data@bbox, proj4string=Teo_ArchPoly_Data@proj4string)
 TeoPts_sf = st_as_sf(Teo_ArchPts_Data) %>% dplyr::select(ID,Area_ha,XM_Pop)
 
 buf = gBuffer(Teo_ArchPts_Data, byid=T, id=NULL, width=distm, quadsegs=10, capStyle="ROUND",joinStyle="ROUND", mitreLimit=1.0)
 buf_sf = st_as_sf(buf) %>% dplyr::select(ID,Area_ha,XM_Pop)
 TMP_MapPoly_sf = st_as_sf(TMP_MapPoly)
-RingsPoly_sf = st_as_sf(RingsPoly)
+RingsPoly_sf = st_as_sf(RingsPoly) %>% mutate(xx = "500m Rings")
 
 BufInt <-st_intersection(buf_sf,TMP_MapPoly_sf)
 #plot(st_geometry(TMP_MapPoly_sf), pch = 3, col = 'red')
@@ -142,16 +146,24 @@ Teo_smooth = Smooth.ppp(X = Teo_ppp, sigma=distm, eps = 10, weights = Teo_ppp$ma
 plot(Teo_smooth)
 
 Teo_PopDens = raster(Teo_smooth)
+
+writeRaster(Teo_PopDens, paste0(wd$data_f,"Teo_PopDens"), format= "GTiff", overwrite=TRUE)
+
+
+
+#Teo_PopDens
 Teo_PopDens = st_as_stars(Teo_PopDens)
 
-RuralOpenPoly_sf = st_as_sf(RuralOpenPoly)
+TeoUrbanBorder_sf = st_as_sf(TeoUrbanBorder)
+TeoUrbanBorder_Inverse_sf = st_as_sf(TeoUrbanBorder_Inverse)
+#RuralOpenPoly_sf = st_as_sf(RuralOpenPoly)
 Low_sf = st_as_sf(Teo_ArchPts_Data) %>% filter(XM_f == "Low")
 IM_sf = st_as_sf(Teo_ArchPts_Data) %>% filter(XM_f == "IM")
 UncertStat_sf = st_as_sf(Teo_ArchPts_Data) %>% filter(XM_f == "UncertStat")
 High_sf = st_as_sf(Teo_ArchPts_Data) %>% filter(XM_f == "High")
-CCFeatPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "CCFeat")
-AoDPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "AoD")
-PlazaPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "Plaza")
+CCFeatPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "CCFeat" | XM_group_f == "AoD" | XM_group_f == "Plaza") %>% mutate(Architecture = "Civic-Ceremonial Features")
+#AoDPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "AoD")
+#PlazaPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "Plaza")
 
   
 ```
@@ -160,34 +172,47 @@ theme(legend.title.align=0.5)
 scale_fill_viridis_c(option = "rocket", na.value = NA, 
                        name = paste0(distm,"m Smoothed    \nPop Density    "),
                        breaks = my_breaks, labels = my_labs) +
-                       
+       TeoUrbanBorder_sf                
 ```{r}
-my_breaks <- c(0, 43, 85, floor(max(Teo_smooth$v, na.rm=T)))
+my_breaks <- c(0, 50, 100, floor(max(Teo_smooth$v, na.rm=T)))
   my_labs <- sapply(my_breaks, paste, "/ha", sep="")
   my_breaks[1] <- 1
+  
+#cols <- c("Civic-Ceremonial Features" = "cyan")
+#cols2 <- c("500-meter Rings" = "gray35")
+cols <- c("500m Rings" = "gray50", "Civic-Ceremonial Features" = "cyan", "TMP Survey Extent" = "black")
+  
 #plasma inferno cividis viridis     begin = 0.15, 
 map = ggplot() +geom_stars(data = Teo_PopDens)+
-  scale_fill_viridis_c(option = "rocket", na.value = NA, 
-                       name = paste0(distm,"m Smoothed    \nPop Density    "),
+  scale_fill_viridis_c(option = "rocket", na.value = NA, direction = -1,
+                       name = paste0(distm,"m Smoothed    \nPopulation Density    "),
                        breaks = my_breaks, labels = my_labs) +
-  geom_sf(data = RuralOpenPoly_sf, fill="yellowgreen", color = NA, size=0, alpha=0.75) +
-  geom_sf(data = CCFeatPoly_sf, fill=NA, color = "cyan", size=0.3, alpha=0.2) +
-  geom_sf(data = AoDPoly_sf, fill=NA, color = "cyan", size=0.3, alpha=0.2) +
-  geom_sf(data = PlazaPoly_sf, fill=NA, color = "cyan", size=0.3, alpha=0.2) +
-  #geom_sf(data = Low_sf, color="red", size=0.75) +
-  #geom_sf(data = UncertStat_sf, color="magenta", size=0.75) +
-  #geom_sf(data = IM_sf, color="yellow", size=0.75) +
-  #geom_sf(data = High_sf, color="green", size=0.75) +
-  geom_sf(data = RingsPoly_sf, fill=NA, color="white", size=1) +
-  geom_sf(data = TMP_MapPoly_sf, fill=NA, color="black", size=1.5) +
+  #geom_sf(data = RuralOpenPoly_sf, fill="yellowgreen", color = NA, size=0, alpha=0.75) +
+  geom_sf(data = TeoUrbanBorder_sf, fill=NA, color = "black", size=1) +
+  geom_sf(data = TeoUrbanBorder_Inverse_sf, color=NA, fill = "white", size=0) +
+  
+  geom_sf(data = RingsPoly_sf, aes(color=xx), fill=NA, size=1.5) +#, show.legend = TRUE
+  #scale_colour_manual(values = cols2)+
+  #new_scale_color() +
+  geom_sf(data = CCFeatPoly_sf, aes(color=Architecture), fill=NA, size=0.3,  alpha=0.2, show.legend = "line") +
+  scale_colour_manual(name=NULL,values = cols)+
+  #geom_sf(data = AoDPoly_sf, fill=NA, color = "cyan", size=0.3, alpha=0.2) +
+  #geom_sf(data = PlazaPoly_sf, fill=NA, color = "cyan", size=0.3, alpha=0.2) +
+  #geom_sf(data = Low_sf, color="white", size=0.75) +
+  #geom_sf(data = UncertStat_sf, color="white", size=0.75) +
+  #geom_sf(data = IM_sf, color="white", size=0.75) +
+  #geom_sf(data = High_sf, color="white", size=0.75) +
+  
+  geom_sf(data = TMP_MapPoly_sf, fill=NA, color="black", size=2) +
+  
   coord_sf(datum = sf::st_crs(32614))+
   theme_void() +
-  theme(legend.position = c(0.9,0.8))+#legend.key.width = unit(1, "cm"), legend.key.height = unit(1.6, "cm")
+  theme(legend.position = c(0.9,0.8))+# legend.key.width = unit(1, "cm"), legend.key.height = unit(1.6, "cm")
   theme(legend.title = element_text(size=11, face="bold"))+
   theme(legend.text = element_text(size=10, face="bold"))#+
   #theme(legend.title.align=0.5)
 map
-#ggsave("Fig3_PopDens.png", plot = plt, device = "png", path = wd$figs, scale = 1, width = 8, height = 5,   units = "in",  dpi = 1000, bg = "white")
+ggsave("Fig3.png", plot = map, device = "png", path = wd$figs, scale = 1, width = 10, height = 8,   units = "in",  dpi = 1000, bg = "white")
 
 #rm(w,UncertStat_sf,TMP_MapPoly,TMP_MapPoly_sf,TeoPts_sf,Teo_smooth,Teo_ppp,Teo_PopDens,Teo_ArchPts_Data,Teo_ArchPoly_Data,RingsPoly_sf,RingsPoly,pts_agg_sp,pts_agg,PlazaPoly_sf,Low_sf,IM_sf,High_sf,cents,CCFeatPoly_sf,AoDPoly_sf,my_breaks,my_labs,distm,BufArea,RuralOpenPoly_sf)
 ```

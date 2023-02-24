@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en"><Esri><CreaDate>20230127</CreaDate><CreaTime>14502300</CreaTime><ArcGISFormat>1.0</ArcGISFormat><SyncOnce>TRUE</SyncOnce><DataProperties><lineage><Process ToolSource="c:\program files (x86)\arcgis\desktop10.7\ArcToolbox\Toolboxes\Spatial Analyst Tools.tbx\Contour" Date="20230127" Time="144451">Contour "Teo_PopDens (2).tif" C:\Users\rcesaret\Documents\ArcGIS\Default.gdb\Contour_tif3 2.5 0 1 CONTOUR_POLYGON #</Process></lineage></DataProperties></Esri><contour_type>CONTOUR_POLYGON</contour_type></metadata>
