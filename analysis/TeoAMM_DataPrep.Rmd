@@ -40,8 +40,8 @@ Either way, once you have done so, you will need to modify the working directory
 wd <- list()
 
 #SET YOUR LOCAL DIRECTORY LOCATION HERE:
-#wd$dir <- "C:/Users/rcesaret/Dropbox (ASU)/TeotihuacanDean/TeotihuacanAMM/"
-wd$dir <- "C:/Users/TJ McMote/Dropbox (ASU)/TeotihuacanDean/TeotihuacanAMM/"
+wd$dir <- "C:/Users/rcesaret/Dropbox (ASU)/TeotihuacanDean/TeotihuacanAMM/"
+#wd$dir <- "C:/Users/TJ McMote/Dropbox (ASU)/TeotihuacanDean/TeotihuacanAMM/"
 
 wd$analysis <- paste0(wd$dir,"analysis/")
 wd$data_r <- paste0(wd$dir,"data-raw/")

@@ -149,8 +149,6 @@ Teo_PopDens = raster(Teo_smooth)
 
 writeRaster(Teo_PopDens, paste0(wd$data_f,"Teo_PopDens"), format= "GTiff", overwrite=TRUE)
 
-
-
 #Teo_PopDens
 Teo_PopDens = st_as_stars(Teo_PopDens)
 
@@ -167,58 +165,38 @@ CCFeatPoly_sf = st_as_sf(Teo_ArchPoly_Data) %>% filter(XM_group_f == "CCFeat" | 
 
   
 ```
-theme(legend.title.align=0.5) 
-
-scale_fill_viridis_c(option = "rocket", na.value = NA, 
-                       name = paste0(distm,"m Smoothed    \nPop Density    "),
-                       breaks = my_breaks, labels = my_labs) +
-       TeoUrbanBorder_sf                
+                
 ```{r}
 my_breaks <- c(0, 50, 100, floor(max(Teo_smooth$v, na.rm=T)))
   my_labs <- sapply(my_breaks, paste, "/ha", sep="")
   my_breaks[1] <- 1
   
-#cols <- c("Civic-Ceremonial Features" = "cyan")
-#cols2 <- c("500-meter Rings" = "gray35")
 cols <- c("500m Rings" = "gray50", "Civic-Ceremonial Features" = "cyan", "TMP Survey Extent" = "black")
   
-#plasma inferno cividis viridis     begin = 0.15, 
 map = ggplot() +geom_stars(data = Teo_PopDens)+
   scale_fill_viridis_c(option = "rocket", na.value = NA, direction = -1,
                        name = paste0(distm,"m Smoothed    \nPopulation Density    "),
                        breaks = my_breaks, labels = my_labs) +
-  #geom_sf(data = RuralOpenPoly_sf, fill="yellowgreen", color = NA, size=0, alpha=0.75) +
   geom_sf(data = TeoUrbanBorder_sf, fill=NA, color = "black", size=1) +
   geom_sf(data = TeoUrbanBorder_Inverse_sf, color=NA, fill = "white", size=0) +
-  
-  geom_sf(data = RingsPoly_sf, aes(color=xx), fill=NA, size=1.5) +#, show.legend = TRUE
-  #scale_colour_manual(values = cols2)+
-  #new_scale_color() +
+  geom_sf(data = RingsPoly_sf, aes(color=xx), fill=NA, size=1.5) +
   geom_sf(data = CCFeatPoly_sf, aes(color=Architecture), fill=NA, size=0.3,  alpha=0.2, show.legend = "line") +
   scale_colour_manual(name=NULL,values = cols)+
-  #geom_sf(data = AoDPoly_sf, fill=NA, color = "cyan", size=0.3, alpha=0.2) +
-  #geom_sf(data = PlazaPoly_sf, fill=NA, color = "cyan", size=0.3, alpha=0.2) +
-  #geom_sf(data = Low_sf, color="white", size=0.75) +
-  #geom_sf(data = UncertStat_sf, color="white", size=0.75) +
-  #geom_sf(data = IM_sf, color="white", size=0.75) +
-  #geom_sf(data = High_sf, color="white", size=0.75) +
-  
   geom_sf(data = TMP_MapPoly_sf, fill=NA, color="black", size=2) +
-  
   coord_sf(datum = sf::st_crs(32614))+
   theme_void() +
-  theme(legend.position = c(0.9,0.8))+# legend.key.width = unit(1, "cm"), legend.key.height = unit(1.6, "cm")
+  theme(legend.position = c(0.9,0.8))+
   theme(legend.title = element_text(size=11, face="bold"))+
   theme(legend.text = element_text(size=10, face="bold"))#+
-  #theme(legend.title.align=0.5)
 map
 ggsave("Fig3.png", plot = map, device = "png", path = wd$figs, scale = 1, width = 10, height = 8,   units = "in",  dpi = 1000, bg = "white")
 
 #rm(w,UncertStat_sf,TMP_MapPoly,TMP_MapPoly_sf,TeoPts_sf,Teo_smooth,Teo_ppp,Teo_PopDens,Teo_ArchPts_Data,Teo_ArchPoly_Data,RingsPoly_sf,RingsPoly,pts_agg_sp,pts_agg,PlazaPoly_sf,Low_sf,IM_sf,High_sf,cents,CCFeatPoly_sf,AoDPoly_sf,my_breaks,my_labs,distm,BufArea,RuralOpenPoly_sf)
 ```
 
+# Figure 4
 
-## Population Density Falloff Curve
+## Figure 4A: Population Density Gradient / Falloff Curve
 
 First, we must fit an exponential function to the falloff population density curve. We will fit a simple exponential model taking the form
 
@@ -234,36 +212,40 @@ expfunc <- function(MedRingDist, b1, b2) {
 
 ```{r include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
 #Estimate the model
-fit_f3b <- nls.multstart::nls_multstart(Popdens_BuiltUp ~ expfunc(MedRingDist, b1, b2),
+fit_f4a <- nls.multstart::nls_multstart(Popdens_BuiltUp ~ expfunc(MedRingDist, b1, b2),
                              data = TeoRings[-1,],
                              start_lower = c(b1=50, b2=-1e-2),
                              start_upper = c(b1=350, b2=-1e-4),
                              iter = 500,
                              supp_errors = "Y")
 
-predict_f3b = ModelPredFrame(fit_f3b,TeoRings[-1,],"MedRingDist","Popdens_BuiltUp")
+predict_f4a = ModelPredFrame(fit_f4a,TeoRings[-1,],"MedRingDist","Popdens_BuiltUp")
 #RegressionTable
-results_f3b = RegressionResultsTab(fit_f3b, TeoRings[-1,], TeoRings[-1,]$MedRingDist, TeoRings[-1,]$Popdens_BuiltUp, model_type="nls", coef="robust", residplots=F, residhists=F)
+results_f4a = RegressionResultsTab(fit_f4a, TeoRings[-1,], TeoRings[-1,]$MedRingDist, TeoRings[-1,]$Popdens_BuiltUp, model_type="nls", coef="robust", residplots=F, residhists=F)
 
-RegressionTable$`Figure 3B` <- c("Median Distance","Population Density","Exponential","Y = b1 e^(b2*X)",
-                    "NLS",paste(round(results_f3b[[1]]$R2,3)), paste(results_f3b[[1]]$n), 
+RegressionTable$`Figure 3A` <- c("Median Distance","Population Density","Exponential","Y = b1 e^(b2*X)",
+                    "NLS",paste(round(results_f4a[[1]]$R2,3)), paste(results_f4a[[1]]$n), 
                     paste(sum(TeoRings[-1,]$DStr_TOT, na.rm=T), "(DStr)"),
-paste0(round(results_f3b[[2]]$estimate[[1]],3),"\n(p < ",round(results_f3b[[2]]$p.value[[1]],5),")"),
-paste0(round(results_f3b[[2]]$estimate[[2]],4),"\n(p < ",round(results_f3b[[2]]$p.value[[2]],7),")"))
+paste0(round(results_f4a[[2]]$estimate[[1]],3),"\n(p < ",round(results_f4a[[2]]$p.value[[1]],5),")"),
+paste0(round(results_f4a[[2]]$estimate[[2]],4),"\n(p < ",round(results_f4a[[2]]$p.value[[2]],7),")"))
 
 ```
 
 
-
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
+predict_f4a$Series <- "Population Density"
+names(predict_f4a) <- c("X","Y","Series")
+f4afactor <- factor(predict_f4a$Series, levels = c("Population Density"))
 
-f3b <- ggplot() +
+f4a <- ggplot() +
   geom_point(data = TeoRings, aes(x = MedRingDist, y = Popdens_BuiltUp, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
-  geom_line(data = predict_f3b, aes(x=MedRingDist, y=Popdens_BuiltUp.p), inetype = "solid", color="firebrick", size=1.3) +
+  #geom_line(data = predict_f4a, aes(x=MedRingDist, y=Popdens_BuiltUp.p), inetype = "solid", color="firebrick", size=1.3) +
+   geom_line(data = predict_f4a, aes(x=X, y=Y, color=f4afactor), inetype = "solid", size=1.3) +
    geom_point(data = TeoRings, aes(x = MedRingDist, y = Popdens_BuiltUp, xmin = MinRingDist, xmax = MaxRingDist, label=Ring), size=2.5, color="black", shape=16, stroke =2)+
   geom_errorbarh(data = TeoRings, aes(x = MedRingDist, y = Popdens_BuiltUp, xmin = MinRingDist, xmax = MaxRingDist, label=Ring),height=1.5, size=1) +
   #annotate("label", x = 3000, y = 70, label = "atop(bold(italic(PopDens) == 131.8 * italic(e) ^ (-0.00064 * ~italic(Dist))),bold(italic(R^2) == 0.978 ~~~~~~ italic(n) == 8 ))", parse = TRUE, color ="black", size=5)+
   #annotate("label", x = 3000, y = 60, label = "Population Density", color ="firebrick", size=5)+
+  scale_color_manual(name = "", values = c("firebrick"), labels=c("Population Density"))+
   xlab("Distance from Center (km)") +
   ylab("Population Density (per ha)") +
   theme_bw() +
@@ -272,10 +254,15 @@ f3b <- ggplot() +
                      labels=function(x)x/1000) +
   theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5)) +
   theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
-  theme(axis.text = element_text(size = 14, color="black")) +
-  theme(axis.title.y = element_text(size = 16, face = "bold")) +
-  theme(axis.title.x = element_text(size = 16, face = "bold"))
-f3b
+  theme(legend.position = c(0.6, 0.7))+
+  theme(legend.title = element_blank())+
+  theme(legend.text = element_text(size=12, face="bold"))+
+  theme(legend.key = element_rect(colour = "transparent", fill = "transparent"))+
+  theme(legend.background = element_rect(fill="transparent", colour = "transparent"))+
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f4a
 ```
 
 
@@ -285,28 +272,13 @@ f3b
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 
-results_f3b = RegressionResultsTab(fit_f3b, TeoRings[-1,], TeoRings[-1,]$MedRingDist, TeoRings[-1,]$Popdens_BuiltUp, model_type="nls", coef="both", residplots=TRUE, residhists=TRUE)
+results_f4a = RegressionResultsTab(fit_f4a, TeoRings[-1,], TeoRings[-1,]$MedRingDist, TeoRings[-1,]$Popdens_BuiltUp, model_type="nls", coef="both", residplots=TRUE, residhists=TRUE)
 
-results_f3b[[1]]
-results_f3b[[2]]
-results_f3b[[3]]
-
-
-```
+results_f4a[[1]]
+results_f4a[[2]]
+results_f4a[[3]]
 
 
-
-## Plot Figure 3
-
-```{r}
-Fig3 <- plot_grid(map,f3b, labels = "AUTO", label_size = 40, hjust=0)
-
-
-Fig3
-
-ggsave("Fig3.png", plot = Fig3, device = "png", path = wd$figs, scale = 1, width = 12, height = 5.5,   units = "in",  dpi = 1000, bg = "white")
-
-#rm(f3a, f3b, Fig3)
 ```
 
 
@@ -323,41 +295,10 @@ ggsave("Fig3.png", plot = Fig3, device = "png", path = wd$figs, scale = 1, width
 
 
 
-# Figure 4
 
 
-## Figure 4A
 
-
-```{r}
-
-areas = data.frame("Ring"= TeoRings$Ring, "MedRingDist"= TeoRings$MedRingDist, "DomStruct" = (TeoRings$Area_DStr+TeoRings$DomPlat_Area), "CCFeat" = TeoRings$CCFeat_O_Area, "UrbanOpen" = (TeoRings$Area_UrbanOpen + TeoRings$UnOccuFeat_Area), "RuralOpen" = TeoRings$Area_RuralOpen)
-areas = areas %>% pivot_longer(3:6, names_to = "Land_Use", values_to = "Area") %>%
-  group_by(Ring, Land_Use) %>%
-  summarise(n = sum(Area)) %>%
-  mutate(percentage = n / sum(n))
-LandUse <- factor(areas$Land_Use, levels = c("RuralOpen", "UrbanOpen", 'CCFeat', 'DomStruct'))
-
-f4a <- ggplot(areas, aes(x=Ring, y=percentage, fill=LandUse)) + 
-    geom_area(alpha=0.6 , size=1, colour="black",stat="identity")+
-  scale_fill_manual(name="Land Use Classes", values = c("yellowgreen","tan","blue","firebrick"),
-                    labels=c("Rural Open", "Urban Open", "CC Features", "Domestic Structures"))+
-xlab("Concentric Ring") +
-  ylab("% Ring Area") +
-  theme_bw() +
-  scale_y_continuous(labels = scales::percent) +#, limits=c(0,1)expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)
-  scale_x_continuous(expand = c(0, 0), limits=c(1,9),breaks=seq(1,9,1)) +
-  theme(legend.position = c(0.775, 0.75))+
-  theme(legend.title = element_text(size=12, face="bold"))+
-  theme(legend.text = element_text(size=10, face="bold"))+
-  theme(legend.background = element_rect(color=alpha('white', 0.5), fill=alpha('white', 0.5)))+
-  theme(axis.text = element_text(size = 12, color="black")) +
-  theme(axis.title.y = element_text(size = 14, face = "bold")) +
-  theme(axis.title.x = element_text(size = 14, face = "bold"))
-f4a
-```
-
-## Figure 4B
+## Figure 4B: CC-Feature and Land Use Intensity Gradients
 
 ```{r include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
 #Estimate the model
@@ -372,7 +313,7 @@ predict_f4b = ModelPredFrame(fit_f4b,TeoRings,"MedRingDist","PctRow_Area_ArchFea
 
 results_f4b = RegressionResultsTab(fit_f4b, TeoRings, TeoRings$MedRingDist, TeoRings$PctRow_Area_ArchFeat, model_type="nls", coef="both", residplots=F, residhists=F)
 
-RegressionTable$`Figure 4B` <- c("Median Distance","Arch Feat % Row Area","Exponential","Y = b1 e^(b2*X)",
+RegressionTable$`Figure 3B` <- c("Median Distance","Arch Feat % Row Area","Exponential","Y = b1 e^(b2*X)",
                     "NLS",paste(round(results_f4b[[1]]$R2,3)), paste(results_f4b[[1]]$n), 
                     paste(sum(TeoRings$ArchFeat_TOT, na.rm=T), "(ArchFeat)"),
 paste0(round(results_f4b[[2]]$estimate[[1]],3),"\n(p < ",round(results_f4b[[2]]$p.value[[1]],10),")"),
@@ -438,6 +379,7 @@ f4b
 ```
 
 
+
 ### Full Regression Results
 
 *"Robust" coef estimates estimated using covariance matrices corrected for heteroskedasticity and autocorrelation*
@@ -452,9 +394,71 @@ results_f4b[[3]]
 ```
 
 
-## Figure 4C
 
 
+
+## Plot Figure 4
+
+```{r}
+Fig4 <- plot_grid(f4a, f4b, labels = "AUTO", label_size = 40, hjust=0)
+
+
+Fig4
+
+ggsave("Fig4.png", plot = Fig4, device = "png", path = wd$figs, scale = 1, width = 12, height = 5.5,   units = "in",  dpi = 1000, bg = "white")
+
+#rm(f3a, f3b, Fig3)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Figure 5: Land Use Gradients 
+
+
+## Figure 5A: Stacked area chart of major land use categories in each concentric ring
+
+
+```{r}
+
+areas = data.frame("Ring"= TeoRings$Ring, "MedRingDist"= TeoRings$MedRingDist, "DomStruct" = (TeoRings$Area_DStr+TeoRings$DomPlat_Area), "CCFeat" = TeoRings$CCFeat_O_Area, "UrbanOpen" = (TeoRings$Area_UrbanOpen + TeoRings$UnOccuFeat_Area), "RuralOpen" = TeoRings$Area_RuralOpen)
+areas = areas %>% pivot_longer(3:6, names_to = "Land_Use", values_to = "Area") %>%
+  group_by(Ring, Land_Use) %>%
+  summarise(n = sum(Area)) %>%
+  mutate(percentage = n / sum(n))
+LandUse <- factor(areas$Land_Use, levels = c("RuralOpen", "UrbanOpen", 'CCFeat', 'DomStruct'))
+
+f5a <- ggplot(areas, aes(x=Ring, y=percentage, fill=LandUse)) + 
+    geom_area(alpha=0.6 , size=1, colour="black",stat="identity")+
+  scale_fill_manual(name="Land Use Classes", values = c("yellowgreen","tan","blue","firebrick"),
+                    labels=c("Rural Open", "Urban Open", "CC Features", "Domestic Structures"))+
+xlab("Concentric Ring") +
+  ylab("% Ring Area") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent) +#, limits=c(0,1)expand = c(0, 0), limits=c(0,90),breaks=seq(0,90,10)
+  scale_x_continuous(expand = c(0, 0), limits=c(1,9),breaks=seq(1,9,1)) +
+  theme(legend.position = c(0.775, 0.75))+
+  theme(legend.title = element_text(size=12, face="bold"))+
+  theme(legend.text = element_text(size=10, face="bold"))+
+  theme(legend.background = element_rect(color=alpha('white', 0.5), fill=alpha('white', 0.5)))+
+  theme(axis.text = element_text(size = 12, color="black")) +
+  theme(axis.title.y = element_text(size = 14, face = "bold")) +
+  theme(axis.title.x = element_text(size = 14, face = "bold"))
+f5a
+```
+
+## Figure 5B
 
 ```{r}
 
@@ -469,7 +473,7 @@ areas = areas %>% pivot_longer(2:5, names_to = "Status", values_to = "Area") %>%
   mutate(percentage = n / sum(n))
 Class <- factor(areas$Status, levels = c('High','Intermediate','Uncertain','Low'))
 
-f4c <- ggplot(areas, aes(x=Ring, y=percentage, fill=Class)) + 
+f5b <- ggplot(areas, aes(x=Ring, y=percentage, fill=Class)) + 
     geom_area(alpha=0.6 , size=1, colour="black",stat="identity")+
   scale_fill_manual(name="Class Status",values = c("green","yellow","orange","red"))+
 xlab("Concentric Ring") +
@@ -484,10 +488,11 @@ xlab("Concentric Ring") +
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
-f4c
+f5b
 ```
 
-## Figure 4D
+## Figure 5C
+
 
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
@@ -508,12 +513,12 @@ Dareas = Dareas %>% pivot_longer(4:8, names_to = "Status2", values_to = "AvgDStr
 Class3 <- factor(Dareas$Status2, levels = c('Total', 'High','Intermediate','Uncertain','Low'))#'',
 
 
-f4d <- ggplot() +
+f5c <- ggplot() +
   #geom_errorbarh(data = Dareas, aes(x = MedRingDist, y = AvgDStrArea, xmin = MinRingDist, xmax = MaxRingDist),height=0.75, size=1) +
   geom_line(data = Dareas, aes(x = MedRingDist, y = AvgDStrArea, color=Class3), size=1.5)+
   scale_color_manual(values = c("black","green2","gold","darkorange", "red"), labels=c('Total', 'High','Intermediate','Uncertain', 'Low x 10'))+#"orange2",name = "Avg DStr Area",
   geom_point(data = Dareas, aes(x = MedRingDist, y = AvgDStrArea), size=1.5, color="black", shape=16, stroke =2)+
-  xlab("Distance from Center (km)") +
+  xlab("Concentric Ring") +
   ylab("Avg DStr Area (m^2)") +
   theme_bw() +
   scale_y_continuous(expand = c(0, 0), limits=c(0,3300),breaks=seq(0,3000,1000)) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
@@ -527,36 +532,48 @@ f4d <- ggplot() +
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
-f4d
+f5c
 ```
 
 
-## Plot Figure 4
 
 
+## Plot Figure 5
+
+plot_grid(
+  plot_grid(p1, p2, nrow = 1, ncol = 2),
+  plot_grid(NULL, p3, NULL, nrow = 1, rel_widths = c(0.5, 1, 0.5)),
+  nrow = 2
+)
+f5bottom <- plot_grid(f5b, f6c, nrow = 1, ncol = 2, labels = c("B", "C"), label_size = 30, hjust=0)
+
+f5top <- plot_grid(NULL, f5a, NULL,  nrow = 1, ncol = 2, rel_widths = c(0.35, 1.3, 0.35), labels = c("", "A  ", ""), label_size = 30)
+
+#Fig5 <- plot_grid(f5a, f5bottom, nrow = 2, ncol = 1, labels = c('A', ''), label_size = 30, hjust=0)
+Fig5 <- plot_grid(f5top, f5bottom, nrow = 2, ncol = 1, hjust=0)
 ```{r}
-Fig4 <- plot_grid(f4a,f4b, f4c, f4d, labels = "AUTO", label_size = 30, hjust=0)
-  #,
-  # ncol = 2
-  #label_x = 1, label_y = 1
-Fig4
 
-ggsave("Fig4.png", plot = Fig4, device = "png", path = wd$figs, scale = 1, width = 10, height = 9,   units = "in",  dpi = 1000, bg = "white")
+Fig5 <- plot_grid(
+  plot_grid(f5a, f5b, nrow = 1, ncol = 2, labels = c("A", "B"), label_size = 30, hjust=0),
+  plot_grid(NULL, f5c, NULL, nrow = 1, labels = c("", "C", ""), label_size = 30, label_x = -0.025, label_y = 1, rel_widths = c(0.4, 1.2, 0.4)),
+  nrow = 2
+)
 
-#rm(f4a, f4b, f4c, f4d, Fig4)
+Fig5
+
+ggsave("Fig5.png", plot = Fig5, device = "png", path = wd$figs, scale = 1, width = 10, height = 9,   units = "in",  dpi = 1000, bg = "white")
+
+
+#rm(f5a, f5b, f5c, Fig5)
 ```
 
 
 
 
-# Figure 5
+# Figure 6: Evidence for a Land Value Gradient 
 
 
-
-
-
-  
-## Figure 5A
+## Figure 6A: High Status Residencies
 
 
 ```{r include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
@@ -564,45 +581,56 @@ ggsave("Fig4.png", plot = Fig4, device = "png", path = wd$figs, scale = 1, width
 TeoRings <- TeoRings %>% mutate(Log_PctRow_Area_CCFeat_AoD = log(PctRow_Area_CCFeat_AoD),
                                 Log_PctRow_DStrArea_Elite = log(PctRow_DStrArea_Elite))
 
-fit_f5a = lm(Log_PctRow_DStrArea_Elite ~ Log_PctRow_Area_CCFeat_AoD, TeoRings[1:6,])
+fit_f6a = lm(Log_PctRow_DStrArea_Elite ~ Log_PctRow_Area_CCFeat_AoD, TeoRings[1:6,])
 
 
 
-predict_f5a = ModelPredFrame(fit_f5a,TeoRings[1:6,],"Log_PctRow_Area_CCFeat_AoD","Log_PctRow_DStrArea_Elite",unlog_after = T)
+predict_f6a = ModelPredFrame(fit_f6a,TeoRings[1:6,],"Log_PctRow_Area_CCFeat_AoD","Log_PctRow_DStrArea_Elite",unlog_after = T)
 
-results_f5a = RegressionResultsTab(fit_f5a, TeoRings[1:6,], TeoRings$Log_PctRow_Area_CCFeat_AoD, TeoRings$Log_PctRow_DStrArea_Elite, model_type="ols", coef="both", residplots=F, residhists=F)
+results_f6a = RegressionResultsTab(fit_f6a, TeoRings[1:6,], TeoRings$Log_PctRow_Area_CCFeat_AoD, TeoRings$Log_PctRow_DStrArea_Elite, model_type="ols", coef="both", residplots=F, residhists=F)
 
 RegressionTable$`Figure 5A` <- c("Log CC Feat % Ring Area","Log High Stat % DStr Area","Log-Log","log(Y) = b2*log(X) + b1",
-                    "OLS",paste(round(results_f5a[[1]]$R2,3)), paste(results_f5a[[1]]$n), 
+                    "OLS",paste(round(results_f6a[[1]]$R2,3)), paste(results_f6a[[1]]$n), 
                     #paste(sum(TeoRings$ArchFeat_TOT, na.rm=T), "(ArchFeat)"),
                     paste(sum(TeoRings[1:6,]$CCStr, na.rm=T), "(CCStr);", sum(TeoRings[1:6,]$Elite_DStr, na.rm=T), "(High DStr)"),
-paste0(round(results_f5a[[2]]$estimate[[1]],4),"\n(p < ",round(results_f5a[[2]]$p.value[[1]],4),")"),
-paste0(round(results_f5a[[2]]$estimate[[2]],4),"\n(p < ",round(results_f5a[[2]]$p.value[[2]],4),")"))
+paste0(round(results_f6a[[2]]$estimate[[1]],4),"\n(p < ",round(results_f6a[[2]]$p.value[[1]],4),")"),
+paste0(round(results_f6a[[2]]$estimate[[2]],4),"\n(p < ",round(results_f6a[[2]]$p.value[[2]],4),")"))
 
 ```
 
 
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
+predict_f6a$Series <- "High Status Residencies"
+names(predict_f6a) <- c("X","Y","Series")
+f6afactor <- factor(predict_f6a$Series, levels = c("High Status Residencies"))
 
-f5a <- ggplot() +
+
+f6a <- ggplot() +
   geom_point(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_DStrArea_Elite),size=2.5, color="black", shape=16, stroke =2)+
-  geom_line(data = predict_f5a, aes(x=Log_PctRow_Area_CCFeat_AoD, y=Log_PctRow_DStrArea_Elite.p), inetype = "solid", color="green3", size=1.3) +
+     geom_line(data = predict_f6a, aes(x=X, y=Y, color=f6afactor), inetype = "solid", size=1.3) +
+scale_color_manual(name = "", values = c("green3"), labels=c("High Status Residencies"))+
+  #geom_line(data = predict_f6a, aes(x=Log_PctRow_Area_CCFeat_AoD, y=Log_PctRow_DStrArea_Elite.p), inetype = "solid", color="green3", size=1.3) +
   #geom_smooth(method = lm, se = FALSE,color="green3", size=1.3)+
   #annotate("label", x = 0.065, y = 0.4, label = "atop(bold(italic(PctHigh) == 0.39 * ~italic(PctCCFeat) + 0.005),bold(italic(R^2) == 0.998 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="green4", size=4)+
   #annotate("label", x = 0.065, y = 0.46, label = "High Status", color ="green3", size=5)+
-  ggtitle("\nHigh Status Residencies")+
+  #ggtitle("\nHigh Status Residencies")+
   xlab("CC Feat % Ring Area") +
   ylab("% Ring DStr Area") +
   theme_bw() +
   scale_y_continuous(labels = scales::percent) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
   scale_x_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
-  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5, color="green4")) +
-  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  #theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5, color="green4")) +
+  #theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(legend.position = c(0.3, 0.7))+
+  theme(legend.title = element_blank())+
+  theme(legend.text = element_text(size=12, face="bold"))+
+  theme(legend.key = element_rect(colour = "transparent", fill = "transparent"))+
+  theme(legend.background = element_rect(fill="transparent", colour = "transparent"))+
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
-f5a
+f6a
 ```
 
 
@@ -612,67 +640,67 @@ f5a
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 
-results_f5a = RegressionResultsTab(fit_f5a, TeoRings[1:6,], TeoRings$Log_PctRow_Area_CCFeat_AoD, TeoRings$Log_PctRow_DStrArea_Elite, model_type="ols", coef="both", residplots=T, residhists=T)
+results_f6a = RegressionResultsTab(fit_f6a, TeoRings[1:6,], TeoRings$Log_PctRow_Area_CCFeat_AoD, TeoRings$Log_PctRow_DStrArea_Elite, model_type="ols", coef="both", residplots=T, residhists=T)
 
-results_f5a[[1]]
-results_f5a[[2]]
-results_f5a[[3]]
+results_f6a[[1]]
+results_f6a[[2]]
+results_f6a[[3]]
 ```
 
-## Figure 5B
+## Figure 6B: Intermediate + Uncertain Status Residences
 
 
 ```{r include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
 #Estimate the model
 
 
-fit_f5b1 = lm(PctRow_DStrArea_IM ~ PctRow_Area_CCFeat_AoD, TeoRings)
-predict_f5b1 = ModelPredFrame(fit_f5b1,TeoRings,"PctRow_Area_CCFeat_AoD","PctRow_DStrArea_IM")
-results_f5b1 = RegressionResultsTab(fit_f5b1, TeoRings, TeoRings$PctRow_Area_CCFeat_AoD, TeoRings$PctRow_DStrArea_IM, model_type="ols", coef="both", residplots=F, residhists=F)
+fit_f6b1 = lm(PctRow_DStrArea_IM ~ PctRow_Area_CCFeat_AoD, TeoRings)
+predict_f6b1 = ModelPredFrame(fit_f6b1,TeoRings,"PctRow_Area_CCFeat_AoD","PctRow_DStrArea_IM")
+results_f6b1 = RegressionResultsTab(fit_f6b1, TeoRings, TeoRings$PctRow_Area_CCFeat_AoD, TeoRings$PctRow_DStrArea_IM, model_type="ols", coef="both", residplots=F, residhists=F)
 
 RegressionTable$`Figure 5B-1` <- c("CC Feat % Ring Area","IM Stat % DStr Area","Linear","Y = b2*X + b1",
-                    "OLS",paste(round(results_f5b1[[1]]$R2,3)), paste(results_f5b1[[1]]$n), 
+                    "OLS",paste(round(results_f6b1[[1]]$R2,3)), paste(results_f6b1[[1]]$n), 
                     #paste(sum(TeoRings$ArchFeat_TOT, na.rm=T), "(ArchFeat)"),
                     paste(sum(TeoRings$CCStr, na.rm=T), "(CCFeat);", sum(TeoRings$IM_DStr, na.rm=T), "(IM DStr)"),
-paste0(round(results_f5b1[[2]]$estimate[[1]],4),"\n(p < ",round(results_f5b1[[2]]$p.value[[1]],15),")"),
-paste0(round(results_f5b1[[2]]$estimate[[2]],4),"\n(p < ",round(results_f5b1[[2]]$p.value[[2]],8),")"))
+paste0(round(results_f6b1[[2]]$estimate[[1]],4),"\n(p < ",round(results_f6b1[[2]]$p.value[[1]],15),")"),
+paste0(round(results_f6b1[[2]]$estimate[[2]],4),"\n(p < ",round(results_f6b1[[2]]$p.value[[2]],8),")"))
 
 
 
 
 TeoRings$PctRow_DStrArea_IMUncerStat = TeoRings$PctRow_DStrArea_UncerStat + TeoRings$PctRow_DStrArea_IM
 
-fit_f5b2 = lm(PctRow_DStrArea_IMUncerStat ~ PctRow_Area_CCFeat_AoD, TeoRings)
-predict_f5b2 = ModelPredFrame(fit_f5b2,TeoRings,"PctRow_Area_CCFeat_AoD","PctRow_DStrArea_IMUncerStat")
-results_f5b2 = RegressionResultsTab(fit_f5b2, TeoRings, TeoRings$PctRow_Area_CCFeat_AoD, TeoRings$PctRow_DStrArea_IMUncerStat, model_type="ols", coef="both", residplots=F, residhists=F)
+fit_f6b2 = lm(PctRow_DStrArea_IMUncerStat ~ PctRow_Area_CCFeat_AoD, TeoRings)
+predict_f6b2 = ModelPredFrame(fit_f6b2,TeoRings,"PctRow_Area_CCFeat_AoD","PctRow_DStrArea_IMUncerStat")
+results_f6b2 = RegressionResultsTab(fit_f6b2, TeoRings, TeoRings$PctRow_Area_CCFeat_AoD, TeoRings$PctRow_DStrArea_IMUncerStat, model_type="ols", coef="both", residplots=F, residhists=F)
 
 RegressionTable$`Figure 5B-2` <- c("CC Feat % Ring Area","IM+Uncert Stat % DStr Area","Linear","Y = b2*X + b1",
-                    "OLS",paste(round(results_f5b2[[1]]$R2,3)), paste(results_f5b2[[1]]$n), 
+                    "OLS",paste(round(results_f6b2[[1]]$R2,3)), paste(results_f6b2[[1]]$n), 
                     #paste(sum(TeoRings$ArchFeat_TOT, na.rm=T), "(ArchFeat)"),
                     paste(sum(TeoRings$CCStr, na.rm=T), "(CCFeat);", sum((TeoRings$IM_DStr + TeoRings$UncerStat_DStr), na.rm=T), "(IM+Uncert DStr)"),
-paste0(round(results_f5b2[[2]]$estimate[[1]],4),"\n(p < ",round(results_f5b2[[2]]$p.value[[1]],15),")"),
-paste0(round(results_f5b2[[2]]$estimate[[2]],4),"\n(p < ",round(results_f5b2[[2]]$p.value[[2]],8),")"))
+paste0(round(results_f6b2[[2]]$estimate[[1]],4),"\n(p < ",round(results_f6b2[[2]]$p.value[[1]],15),")"),
+paste0(round(results_f6b2[[2]]$estimate[[2]],4),"\n(p < ",round(results_f6b2[[2]]$p.value[[2]],8),")"))
 
 
 ```
 
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
-predict_f5b2$Series <- "Intermediate + Uncertain Status"
-predict_f5b1$Series <- "Intermediate Status"
-names(predict_f5b1) <- c("X","Y","Series")
-names(predict_f5b2) <- c("X","Y","Series")
-predict_f5b = rbind(predict_f5b1,predict_f5b2)
+predict_f6b2$Series <- "Intermediate + Uncertain Status"
+predict_f6b1$Series <- "Intermediate Status"
+names(predict_f6b1) <- c("X","Y","Series")
+names(predict_f6b2) <- c("X","Y","Series")
+predict_f6b = rbind(predict_f6b1,predict_f6b2)
 
-f5bfactor <- factor(predict_f5b$Series, levels = c("Intermediate Status", "Intermediate + Uncertain Status"))
+f6bfactor <- factor(predict_f6b$Series, levels = c("Intermediate Status", "Intermediate + Uncertain Status"))
 
 
-f5b <- ggplot() +
+f6b <- ggplot() +
   geom_point(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_DStrArea_IMUncerStat), size=2.5, color="orange3", shape=16, stroke =2)+
   geom_point(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_DStrArea_IM), size=2.5, color="gold2", shape=16, stroke =2)+
-  #geom_line(data = predict_f5b, aes(x=PctRow_Area_CCFeat_AoD, y=PctRow_DStrArea_IM.p), inetype = "solid", color="yellow3", size=1.3) +
+  #geom_line(data = predict_f6b, aes(x=PctRow_Area_CCFeat_AoD, y=PctRow_DStrArea_IM.p), inetype = "solid", color="yellow3", size=1.3) +
   
-  geom_line(data = predict_f5b, aes(x=X, y=Y, color=f5bfactor), inetype = "solid", size=1.3) +
+  geom_line(data = predict_f6b, aes(x=X, y=Y, color=f6bfactor), inetype = "solid", size=1.3) +
   scale_color_manual(name = "", values = c("yellow3","darkorange"), labels=c("Intermediate Status", "Intermediate + Uncertain Status"))+
   #geom_smooth(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_DStrArea_IMUncerStat), method = lm, se = FALSE,color="darkorange", size=1.3)+
   #annotate("label", x = 0.155, y = 0.915, label = "atop(bold(italic(PctIMU) == -1.95 * ~italic(PctCCFeat) + 0.98),bold(italic(R^2) == 0.98 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="orange4", size=4)+
@@ -683,14 +711,14 @@ f5b <- ggplot() +
   
   #annotate("label", x = 0.08, y = 0.55, label = "atop(bold(italic(PctIM) == -1.55 * ~italic(PctCCFeat) + 0.88),bold(italic(R^2) == 0.938 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="yellow4", size=4)+
   #annotate("label", x = 0.08, y = 0.615, label = "Intermediate Status", color ="yellow3", size=5)+
-  ggtitle("\nIntermediate Status Residencies")+
+  #ggtitle("\nIntermediate Status Residencies")+
   xlab("CC Feat % Ring Area") +
   ylab("% Ring DStr Area") +
   theme_bw() +
-  scale_y_continuous(labels = scales::percent) +#, limits=c(0.3,1), breaks=seq(0.4,1,0.2)
+  scale_y_continuous(labels = scales::percent, limits=c(0.5,1), breaks=seq(0.5,0.9,0.2)) +#
   scale_x_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
-  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5, color="gold3")) +
-  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  #theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5, color="gold3")) +
+  #theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
   theme(legend.position = c(0.6, 0.9))+
   theme(legend.title = element_blank())+
   theme(legend.text = element_text(size=12, face="bold"))+
@@ -699,69 +727,83 @@ f5b <- ggplot() +
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
-f5b
+f6b
 ```
 
 
 ### Full Regression Results
 
 
+#### Intermediate Status Only
+
+
 ```{r}
-results_f5b1 = RegressionResultsTab(fit_f5b1, TeoRings, TeoRings$PctRow_Area_CCFeat_AoD, TeoRings$PctRow_DStrArea_IM, model_type="ols", coef="both", residplots=T, residhists=T)
-results_f5b1[[1]]
-results_f5b1[[2]]
-results_f5b1[[3]]
+results_f6b1 = RegressionResultsTab(fit_f6b1, TeoRings, TeoRings$PctRow_Area_CCFeat_AoD, TeoRings$PctRow_DStrArea_IM, model_type="ols", coef="both", residplots=T, residhists=T)
+results_f6b1[[1]]
+results_f6b1[[2]]
+results_f6b1[[3]]
+```
+
+#### Intermediate + Uncertain Status
+
+```{r}
+results_f6b2 = RegressionResultsTab(fit_f6b2, TeoRings, TeoRings$PctRow_Area_CCFeat_AoD, TeoRings$PctRow_DStrArea_IM, model_type="ols", coef="both", residplots=T, residhists=T)
+results_f6b2[[1]]
+results_f6b2[[2]]
+results_f6b2[[3]]
 ```
 
 
 
-```{r}
-results_f5b2 = RegressionResultsTab(fit_f5b2, TeoRings, TeoRings$PctRow_Area_CCFeat_AoD, TeoRings$PctRow_DStrArea_IM, model_type="ols", coef="both", residplots=T, residhists=T)
-results_f5b2[[1]]
-results_f5b2[[2]]
-results_f5b2[[3]]
-```
 
-
-
-
-## Figure 5C
+## Figure 6C: Low Status Residences
 
 ```{r include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
 #Estimate the model
 TeoRings <- TeoRings %>% mutate(Log_PctRow_Ring_DStr_Low = log(PctRow_Ring_DStr_Low))
 
-fit_f5c = lm(Log_PctRow_Ring_DStr_Low ~ Log_PctRow_Area_CCFeat_AoD, TeoRings)
+fit_f6c = lm(Log_PctRow_Ring_DStr_Low ~ Log_PctRow_Area_CCFeat_AoD, TeoRings)
 
 
 
-predict_f5c = ModelPredFrame(fit_f5c,TeoRings,"Log_PctRow_Area_CCFeat_AoD","Log_PctRow_Ring_DStr_Low",unlog_after = T)#, xmin = log(0.002)
+predict_f6c = ModelPredFrame(fit_f6c,TeoRings,"Log_PctRow_Area_CCFeat_AoD","Log_PctRow_Ring_DStr_Low",unlog_after = T)#, xmin = log(0.002)
 
-results_f5c = RegressionResultsTab(fit_f5c, TeoRings, TeoRings$Log_PctRow_Area_CCFeat_AoD, TeoRings$Log_PctRow_Ring_DStr_Low, model_type="ols", coef="both", residplots=F, residhists=F)
+results_f6c = RegressionResultsTab(fit_f6c, TeoRings, TeoRings$Log_PctRow_Area_CCFeat_AoD, TeoRings$Log_PctRow_Ring_DStr_Low, model_type="ols", coef="both", residplots=F, residhists=F)
 
 RegressionTable$`Figure 5C` <- c("Log CC Feat % Ring Area","Log Low Stat % DStr","Log-Log","log(Y) = b2*log(X) + b1",
-                    "OLS",paste(round(results_f5c[[1]]$R2,3)), paste(results_f5c[[1]]$n), 
+                    "OLS",paste(round(results_f6c[[1]]$R2,3)), paste(results_f6c[[1]]$n), 
                     #paste(sum(TeoRings$ArchFeat_TOT, na.rm=T), "(ArchFeat)"),
                     paste(sum(TeoRings$CCStr, na.rm=T), "(CCStr);", sum(TeoRings$Low_DStr, na.rm=T), "(Low DStr)"),
-paste0(round(results_f5c[[2]]$estimate[[1]],4),"\n(p < ",round(results_f5c[[2]]$p.value[[1]],4),")"),
-paste0(round(results_f5c[[2]]$estimate[[2]],4),"\n(p < ",round(results_f5c[[2]]$p.value[[2]],4),")"))
+paste0(round(results_f6c[[2]]$estimate[[1]],4),"\n(p < ",round(results_f6c[[2]]$p.value[[1]],4),")"),
+paste0(round(results_f6c[[2]]$estimate[[2]],4),"\n(p < ",round(results_f6c[[2]]$p.value[[2]],4),")"))
 
 ```
 
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
+predict_f6c$Series <- "Low Status Residencies"
+names(predict_f6c) <- c("X","Y","Series")
+f6cfactor <- factor(predict_f6c$Series, levels = c("Low Status Residencies"))
 
-f5c <- ggplot() +
+
+f6c <- ggplot() +
   geom_point(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_Ring_DStr_Low), size=2.5, color="black", shape=16, stroke =2)+
-  geom_line(data = predict_f5c, aes(x=Log_PctRow_Area_CCFeat_AoD, y=Log_PctRow_Ring_DStr_Low.p), inetype = "solid", color="red", size=1.3) +
+  geom_line(data = predict_f6c, aes(x=X, y=Y, color=f6cfactor), inetype = "solid", size=1.3) +
+  scale_color_manual(name = "", values = c("red"), labels=c("Low Status Residencies"))+
+  #geom_line(data = predict_f6c, aes(x=Log_PctRow_Area_CCFeat_AoD, y=Log_PctRow_Ring_DStr_Low.p), inetype = "solid", color="red", size=1.3) +
   #annotate("label", x = 0.125, y = 0.4, label = "Low Status", color ="red", size=5)+
   #annotate("label", x = 0.125, y = 0.04, label = "atop(bold(italic(PctCCFeat) == 0.00000679 ~italic(PctLow) ^ -1.47),bold(italic(pseudo~R^2) == 0.995 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="firebrick", size=4)+
-  ggtitle("\nLow Status Residencies")+
+  #ggtitle("\nLow Status Residencies")+
   xlab("CC Feat % Ring Area") +
   ylab("% Ring DStr") +
   theme_bw() +
   scale_y_continuous(labels = scales::percent) +#, breaks=seq(0.4,1,0.2)
   scale_x_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
+  theme(legend.position = c(0.6, 0.7))+
+  theme(legend.title = element_blank())+
+  theme(legend.text = element_text(size=12, face="bold"))+
+  theme(legend.key = element_rect(colour = "transparent", fill = "transparent"))+
+  theme(legend.background = element_rect(fill="transparent", colour = "transparent"))+
   #scale_y_continuous(expand = c(0, 0), ,) +
   #scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000)) +
   theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5,color="red3")) +
@@ -770,69 +812,78 @@ f5c <- ggplot() +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
 
-f5c
+f6c
 ```
 
 ### Full Regression Results
 
 
 ```{r}
-results_f5c = RegressionResultsTab(fit_f5c, TeoRings,TeoRings$Log_PctRow_Area_CCFeat_AoD,  TeoRings$Log_PctRow_Ring_DStr_Low, model_type="ols", coef="both", residplots=T, residhists=T)
-results_f5c[[1]]
-results_f5c[[2]]
-results_f5c[[3]]
+results_f6c = RegressionResultsTab(fit_f6c, TeoRings,TeoRings$Log_PctRow_Area_CCFeat_AoD,  TeoRings$Log_PctRow_Ring_DStr_Low, model_type="ols", coef="both", residplots=T, residhists=T)
+results_f6c[[1]]
+results_f6c[[2]]
+results_f6c[[3]]
 ```
 
 
-## Figure 5D
+## Figure 6D: All Architectural Features 
 
 
 ```{r include=FALSE,echo=F,message=FALSE,warning=FALSE,results = 'hide'}
-#Estimate the model
-
-
-fit_f5d = lm(PctRow_Area_ArchFeat ~ Log_PctRow_Area_CCFeat_AoD, TeoRings)
 
 
 
-predict_f5d = ModelPredFrame(fit_f5d,TeoRings,"Log_PctRow_Area_CCFeat_AoD","PctRow_Area_ArchFeat",unlog_after_x = T)#, xmin = log(0.002)
+fit_f6d = lm(PctRow_Area_ArchFeat ~ Log_PctRow_Area_CCFeat_AoD, TeoRings)
 
-results_f5d = RegressionResultsTab(fit_f5d, TeoRings, TeoRings$Log_PctRow_Area_CCFeat_AoD, TeoRings$PctRow_Area_ArchFeat, model_type="ols", coef="both", residplots=F, residhists=F)
+
+
+predict_f6d = ModelPredFrame(fit_f6d,TeoRings,"Log_PctRow_Area_CCFeat_AoD","PctRow_Area_ArchFeat",unlog_after_x = T)#, xmin = log(0.002)
+
+results_f6d = RegressionResultsTab(fit_f6d, TeoRings, TeoRings$Log_PctRow_Area_CCFeat_AoD, TeoRings$PctRow_Area_ArchFeat, model_type="ols", coef="both", residplots=F, residhists=F)
 
 RegressionTable$`Figure 5D` <- c("Log CC Feat % Ring Area","Arch Feat % Area","Log-X","X = b2*log(Y) + b1",
-                    "OLS",paste(round(results_f5d[[1]]$R2,3)), paste(results_f5d[[1]]$n), 
+                    "OLS",paste(round(results_f6d[[1]]$R2,3)), paste(results_f6d[[1]]$n), 
                     #paste(sum(TeoRings$ArchFeat_TOT, na.rm=T), "(ArchFeat)"),
                     paste(sum(TeoRings$CCStr, na.rm=T), "(CCStr);", sum(TeoRings$ArchFeat_TOT, na.rm=T), "(Arch Feat)"),
-paste0(round(results_f5d[[2]]$estimate[[1]],4),"\n(p < ",round(results_f5d[[2]]$p.value[[1]],4),")"),
-paste0(round(results_f5d[[2]]$estimate[[2]],4),"\n(p < ",round(results_f5d[[2]]$p.value[[2]],4),")"))
+paste0(round(results_f6d[[2]]$estimate[[1]],4),"\n(p < ",round(results_f6d[[2]]$p.value[[1]],4),")"),
+paste0(round(results_f6d[[2]]$estimate[[2]],4),"\n(p < ",round(results_f6d[[2]]$p.value[[2]],4),")"))
 
 ```
 
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE}
 
+predict_f6d$Series <- "All Architectural Features"
+names(predict_f6d) <- c("X","Y","Series")
+f6dfactor <- factor(predict_f6d$Series, levels = c("All Architectural Features"))
 
-
-f5d <- ggplot() +
+f6d <- ggplot() +
   geom_point(data = TeoRings, aes(x = PctRow_Area_CCFeat_AoD, y = PctRow_Area_ArchFeat), size=2.5, color="black", shape=16, stroke =2)+
-  geom_line(data = predict_f5d, aes(x=Log_PctRow_Area_CCFeat_AoD, y=PctRow_Area_ArchFeat.p), inetype = "solid", color="purple", size=1.3) +
+  #geom_line(data = predict_f6d, aes(x=Log_PctRow_Area_CCFeat_AoD, y=PctRow_Area_ArchFeat.p), inetype = "solid", color="purple", size=1.3) +
+  geom_line(data = predict_f6d, aes(x=X, y=Y, color=f6dfactor), inetype = "solid", size=1.3) +
+  scale_color_manual(name = "", values = c("purple"), labels=c("All Architectural Features"))+
   #annotate("label", x = 0.125, y = 0.26, label = "All Architectural Features", color ="purple", size=5)+
   #annotate("label", x = 0.125, y = 0.17, label = "atop(bold(italic(PctArchFeat) == 0.144 ~italic(PctCCFeat) + 0.847),bold(italic(R^2) == 0.819 ~~~~~~ italic(n) == 9 ))", parse = TRUE, color ="purple3", size=4)+
-  ggtitle("\nAll Architectural Features")+
+  #ggtitle("\nAll Architectural Features")+
   xlab("CC Feat % Ring Area") +
   ylab("Arch Feat % Ring Area  ") +
   theme_bw() +
   scale_y_continuous(labels = scales::percent) +#, breaks=seq(0.4,1,0.2)
   scale_x_continuous(labels = scales::percent) +#, limits=c(0,0.25), breaks=seq(0,0.25,0.05)
-  #scale_y_continuous(expand = c(0, 0), ,) +
-  #scale_x_continuous(expand = c(0, 0), limits=c(-20,4600),breaks=seq(0,4000,1000)) +
-  theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5,color="purple3")) +
-  theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
+  theme(legend.position = c(0.7, 0.35))+
+  theme(legend.title = element_blank())+
+  theme(legend.text = element_text(size=12, face="bold"))+
+  theme(legend.key = element_rect(colour = "transparent", fill = "transparent"))+
+  theme(legend.background = element_rect(fill="transparent", colour = "transparent"))+
+  scale_y_continuous(labels = scales::percent, limits=c(0,0.7),breaks=c(0, 0.2, 0.4, 0.6)) +
+  scale_x_continuous(labels = scales::percent) +
+  #theme(plot.title = element_text(size = 14, face = "bold",hjust = 0.5,color="purple3")) +
+  #theme(plot.subtitle = element_text(size = 12, face = "bold.italic",hjust = 0.5)) +
   theme(axis.text = element_text(size = 12, color="black")) +
   theme(axis.title.y = element_text(size = 14, face = "bold")) +
   theme(axis.title.x = element_text(size = 14, face = "bold"))
 
-f5d
+f6d
 ```
 
 
@@ -840,10 +891,10 @@ f5d
 
 
 ```{r}
-results_f5d = RegressionResultsTab(fit_f5d, TeoRings, TeoRings$Log_PctRow_Area_CCFeat_AoD, TeoRings$PctRow_Area_ArchFeat, model_type="ols", coef="both", residplots=T, residhists=T)
-results_f5d[[1]]
-results_f5d[[2]]
-results_f5d[[3]]
+results_f6d = RegressionResultsTab(fit_f6d, TeoRings, TeoRings$Log_PctRow_Area_CCFeat_AoD, TeoRings$PctRow_Area_ArchFeat, model_type="ols", coef="both", residplots=T, residhists=T)
+results_f6d[[1]]
+results_f6d[[2]]
+results_f6d[[3]]
 ```
 
 
@@ -852,20 +903,20 @@ results_f5d[[3]]
 ## Plot Figure 5
 
 ```{r}
-Fig5 <- plot_grid(f5a, f5b, f5c, f5d, labels = "AUTO", label_size = 30, hjust=-1)
+Fig6 <- plot_grid(f6a, f6b, f6c, f6d, labels = "AUTO", label_size = 30, hjust=-1)
 
 
-Fig5
+Fig6
 
 
-ggsave("Fig5.png", plot = Fig5, device = "png", path = wd$figs, scale = 1, width = 10, height = 8,   units = "in",  dpi = 1000, bg = "white")
-
-
-
+ggsave("Fig6.png", plot = Fig6, device = "png", path = wd$figs, scale = 1, width = 10, height = 8,   units = "in",  dpi = 1000, bg = "white")
 
 
 
-#rm(f5a, f5b, f5c, f5d, Fig5)
+
+
+
+#rm(f6a, f6b, f6c, f6d, Fig6)
 ```
 
 
