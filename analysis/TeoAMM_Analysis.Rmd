@@ -407,7 +407,7 @@ Fig4
 
 ggsave("Fig4.png", plot = Fig4, device = "png", path = wd$figs, scale = 1, width = 12, height = 5.5,   units = "in",  dpi = 1000, bg = "white")
 
-#rm(f3a, f3b, Fig3)
+#rm(f4a, f4b, Fig4)
 ```
 
 
@@ -442,7 +442,7 @@ LandUse <- factor(areas$Land_Use, levels = c("RuralOpen", "UrbanOpen", 'CCFeat',
 f5a <- ggplot(areas, aes(x=Ring, y=percentage, fill=LandUse)) + 
     geom_area(alpha=0.6 , size=1, colour="black",stat="identity")+
   scale_fill_manual(name="Land Use Classes", values = c("yellowgreen","tan","blue","firebrick"),
-                    labels=c("Rural Open", "Urban Open", "CC Features", "Domestic Structures"))+
+                    labels=c("Non-Urban Open", "Urban Open", "CC Features", "Domestic Structures"))+
 xlab("Concentric Ring") +
   ylab("% Ring Area") +
   theme_bw() +

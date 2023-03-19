@@ -40,8 +40,8 @@ Either way, once you have done so, you will need to modify the working directory
 wd <- list()
 
 #SET YOUR LOCAL DIRECTORY LOCATION HERE:
-wd$dir <- "C:/Users/rcesaret/Dropbox (ASU)/TeotihuacanDean/TeotihuacanAMM/"
-#wd$dir <- "C:/Users/TJ McMote/Dropbox (ASU)/TeotihuacanDean/TeotihuacanAMM/"
+#wd$dir <- "C:/Users/rcesaret/Dropbox (ASU)/TeotihuacanDean/TeotihuacanAMM/"
+wd$dir <- "C:/Users/TJ McMote/Dropbox (ASU)/TeotihuacanDean/TeotihuacanAMM/"
 
 wd$analysis <- paste0(wd$dir,"analysis/")
 wd$data_r <- paste0(wd$dir,"data-raw/")
@@ -107,8 +107,8 @@ Refer to metadata
 The primary class spatial data format used in this script is the Spatial Polygon Dataframe (spdf) class from the “sp” R package. While I frequently switch back-and-forth to the “Simple Features” (sf) class from the “sf” R package data, I make sure to revert to Spatial Polygon Dataframe (spdf) after all sf calculations.
 
 We will be working in the coordinate reference system (CRS; projection) WGS84 / UTM Zone 14N (ESPG:32614) for the entirety of this analysis.
-
-
+TeoUrbanBorder_Inverse.gpkg
+TeoUrbanBorder2.gpkg
 ```{r, label='Import Data', message=FALSE, warning=FALSE, results = 'hide'}
 
 #TMP Architectural interpretation points
@@ -127,9 +127,9 @@ RingsPoly_Oval <- invisible(readOGR(paste0(wd$data_r,"RingsPoly_Oval.gpkg")))
 #TMP survey limit polygon
 TMP_MapPoly <- invisible(readOGR(paste0(wd$data_r,"TMP_Map_Poly_Extent.gpkg")))
 
-UrbanOpenPoly <- invisible(readOGR(paste0(wd$data_r,"UrbanOpenPoly.gpkg")))
-RuralOpenPoly <- invisible(readOGR(paste0(wd$data_r,"RuralOpenPoly.gpkg")))
-
+UrbanOpenPoly <- invisible(readOGR(paste0(wd$data_r,"TeoUrbanBorder_UrbanOpen.gpkg")))
+RuralOpenPoly <- invisible(readOGR(paste0(wd$data_r,"TeoUrbanBorder_RuralOpen.gpkg")))
+RuralOpenPoly.gpkg
 ```
 
 
@@ -247,9 +247,9 @@ rm(RuralOpenPoly.sf,UrbanOpenPoly.sf,TMP_MapPoly.sf)
 names(RuralOpenPoly@data)[names(RuralOpenPoly@data) == 'Area_ha'] <- 'RuralOpenArea'
 names(UrbanOpenPoly@data)[names(UrbanOpenPoly@data) == 'Area_ha'] <- 'UrbanOpenArea'
 
-Open <- merge(RuralOpenPoly@data, UrbanOpenPoly@data, by = 'Ring', all=TRUE)
+Open <- merge(RuralOpenPoly@data, UrbanOpenPoly@data, by = c('ID', 'Dist', 'Ring'), all=TRUE)
 Open[is.na(Open)] <- 0
-Open <- Open %>% select(-ID,-ID_2, -Dist.x, -Dist.y) %>% mutate(
+Open <- Open %>% mutate(
   TotalOpen = RuralOpenArea + UrbanOpenArea,
   BuiltUpArea = RingsPoly_Oval@data$Area_ha - RuralOpenArea,
   StructureArea = RingsPoly_Oval@data$Area_ha - TotalOpen)
